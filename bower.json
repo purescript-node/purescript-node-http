@@ -19,6 +19,6 @@
   "dependencies": {
     "purescript-maps": "^0.5.0",
     "purescript-node-streams": "^0.1.1",
-    "purescript-unsafe-coerce": "^0.1.1"
+    "purescript-unsafe-coerce": "^0.1.0"
   }
 }
