@@ -1,0 +1,21 @@
+{
+  "name": "purescript-node-http",
+  "version": "1.0.0",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "devDependencies": {
+    "purescript-console": "^0.1.0"
+  },
+  "dependencies": {
+    "purescript-maps": "~0.5.0",
+    "purescript-node-streams": "~0.1.0",
+    "purescript-unsafe-coerce": "~0.1.0"
+  }
+}
