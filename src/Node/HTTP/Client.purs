@@ -17,6 +17,8 @@ module Node.HTTP.Client
   , responseAsStream
   , httpVersion
   , responseHeaders
+  , statusCode
+  , statusMessage
   ) where
 
 import Prelude
@@ -96,3 +98,11 @@ httpVersion = _.httpVersion <<< unsafeCoerce
 -- | Get the response headers as a hash
 responseHeaders :: Response -> StrMap String
 responseHeaders = _.headers <<< unsafeCoerce
+
+-- | Get the response status code
+statusCode :: Response -> Int
+statusCode = _.statusCode <<< unsafeCoerce
+
+-- | Get the response status message
+statusMessage :: Response -> String
+statusMessage = _.statusMessage <<< unsafeCoerce

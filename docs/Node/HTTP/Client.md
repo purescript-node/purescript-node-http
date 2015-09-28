@@ -133,4 +133,20 @@ responseHeaders :: Response -> StrMap String
 
 Get the response headers as a hash
 
+#### `statusCode`
+
+``` purescript
+statusCode :: Response -> Int
+```
+
+Get the response status code
+
+#### `statusMessage`
+
+``` purescript
+statusMessage :: Response -> String
+```
+
+Get the response status message
+
 
