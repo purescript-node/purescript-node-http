@@ -13,6 +13,7 @@ module Node.HTTP.Client
   , headers
   , auth
   , request
+  , requestFromURI
   , requestAsStream
   , responseAsStream
   , httpVersion
@@ -82,6 +83,10 @@ foreign import requestImpl :: forall eff. Foreign -> (Response -> Eff (http :: H
 -- | Make a HTTP request using the specified options and response callback.
 request :: forall eff. Options RequestOptions -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
 request = requestImpl <<< options
+
+-- | Make a HTTP request from a URI string and response callback.
+requestFromURI :: forall eff. String -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
+requestFromURI = requestImpl <<< toForeign
 
 -- | Create a writable stream from a request object.
 requestAsStream :: forall eff r a. Request -> Writable r (http :: HTTP | eff) a

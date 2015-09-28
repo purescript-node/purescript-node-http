@@ -18,7 +18,7 @@ main = do
   server <- createServer respond
   listen server 8080 $ void do
     log "Listening on port 8080."
-    req <- Client.request (Client.hostname := "localhost" <> Client.port := 8080) \response -> void do
+    req <- Client.requestFromURI "http://localhost:8080/" \response -> void do
       log "Response from GET /:"
       let responseStream = Client.responseAsStream response
       pipe responseStream stdout

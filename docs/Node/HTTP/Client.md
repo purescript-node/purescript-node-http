@@ -101,6 +101,14 @@ request :: forall eff. Options RequestOptions -> (Response -> Eff (http :: HTTP 
 
 Make a HTTP request using the specified options and response callback.
 
+#### `requestFromURI`
+
+``` purescript
+requestFromURI :: forall eff. String -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
+```
+
+Make a HTTP request from a URI string and response callback.
+
 #### `requestAsStream`
 
 ``` purescript
