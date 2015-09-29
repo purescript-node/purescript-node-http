@@ -3,7 +3,7 @@
 module Node.HTTP.Client
   ( Request()
   , Response()
-  , RequestHeaders()
+  , RequestHeaders(..)
   , RequestOptions()
   , protocol
   , hostname

@@ -22,6 +22,7 @@ A HTTP response object
 
 ``` purescript
 newtype RequestHeaders
+  = RequestHeaders (StrMap String)
 ```
 
 A HTTP request object
