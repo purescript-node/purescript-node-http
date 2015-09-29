@@ -70,7 +70,7 @@ method = opt "method"
 path :: Option RequestOptions String
 path = opt "path"
 
-headers :: Option RequestOptions String
+headers :: Option RequestOptions RequestHeaders
 headers = opt "headers"
 
 -- | Basic authentication

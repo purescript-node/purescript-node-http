@@ -82,7 +82,7 @@ The request path, including query string if appropriate.
 #### `headers`
 
 ``` purescript
-headers :: Option RequestOptions String
+headers :: Option RequestOptions RequestHeaders
 ```
 
 #### `auth`
