@@ -13,3 +13,13 @@ exports.requestImpl = function(opts) {
     };
   };
 };
+
+exports.setTimeout = function(r) {
+  return function(ms) {
+    return function(k) {
+      return function() {
+        r.setTimeout(ms, k);
+      };
+    };
+  };
+};

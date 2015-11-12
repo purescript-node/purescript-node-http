@@ -16,6 +16,7 @@ module Node.HTTP.Client
   , requestFromURI
   , requestAsStream
   , responseAsStream
+  , setTimeout
   , httpVersion
   , responseHeaders
   , statusCode
@@ -95,6 +96,9 @@ requestAsStream = unsafeCoerce
 -- | Create a readable stream from a response object.
 responseAsStream :: forall eff w a. Response -> Readable w (http :: HTTP | eff) a
 responseAsStream = unsafeCoerce
+
+-- | Set the socket timeout for a `Request`
+foreign import setTimeout :: forall eff. Request -> Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
 
 -- | Get the request HTTP version
 httpVersion :: Response -> String

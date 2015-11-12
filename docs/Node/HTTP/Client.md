@@ -126,6 +126,14 @@ responseAsStream :: forall eff w a. Response -> Readable w (http :: HTTP | eff) 
 
 Create a readable stream from a response object.
 
+#### `setTimeout`
+
+``` purescript
+setTimeout :: forall eff. Request -> Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+```
+
+Set the socket timeout for a `Request`
+
 #### `httpVersion`
 
 ``` purescript
