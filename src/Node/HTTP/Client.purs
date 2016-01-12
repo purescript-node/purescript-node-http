@@ -90,11 +90,11 @@ requestFromURI :: forall eff. String -> (Response -> Eff (http :: HTTP | eff) Un
 requestFromURI = requestImpl <<< toForeign
 
 -- | Create a writable stream from a request object.
-requestAsStream :: forall eff r a. Request -> Writable r (http :: HTTP | eff) a
+requestAsStream :: forall eff r. Request -> Writable r (http :: HTTP | eff)
 requestAsStream = unsafeCoerce
 
 -- | Create a readable stream from a response object.
-responseAsStream :: forall eff w a. Response -> Readable w (http :: HTTP | eff) a
+responseAsStream :: forall eff w. Response -> Readable w (http :: HTTP | eff)
 responseAsStream = unsafeCoerce
 
 -- | Set the socket timeout for a `Request`

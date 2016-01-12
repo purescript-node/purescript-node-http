@@ -44,7 +44,7 @@ requestURL :: Request -> String
 requestURL = _.url <<< unsafeCoerce
 
 -- | Coerce the request object into a readable stream.
-requestAsStream :: forall eff a. Request -> Readable () (http :: HTTP | eff) a
+requestAsStream :: forall eff. Request -> Readable () (http :: HTTP | eff)
 requestAsStream = unsafeCoerce
 
 -- | Set a header with a single value.
@@ -60,5 +60,5 @@ foreign import setStatusCode :: forall eff. Response -> Int -> Eff (http :: HTTP
 foreign import setStatusMessage :: forall eff. Response -> String -> Eff (http :: HTTP | eff) Unit
 
 -- | Coerce the response object into a writable stream.
-responseAsStream :: forall eff a. Response -> Writable () (http :: HTTP | eff) a
+responseAsStream :: forall eff. Response -> Writable () (http :: HTTP | eff)
 responseAsStream = unsafeCoerce
