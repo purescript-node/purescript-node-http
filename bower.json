@@ -17,9 +17,9 @@
     "purescript-console": "^0.1.0"
   },
   "dependencies": {
-    "purescript-maps": "^0.5.0",
-    "purescript-node-streams": "^0.1.1",
-    "purescript-options": "~0.5.1",
-    "purescript-unsafe-coerce": "^0.1.0"
+    "purescript-maps": "^0.5.4",
+    "purescript-options": "^0.5.1",
+    "purescript-unsafe-coerce": "^0.1.0",
+    "purescript-node-streams": "^0.3.0"
   }
 }

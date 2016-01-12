@@ -12,7 +12,7 @@ import qualified Node.HTTP.Client as Client
 import Node.Stream
 import Node.Encoding
 
-foreign import stdout :: forall eff r a. Writable r eff a
+foreign import stdout :: forall eff r. Writable r eff
 
 main = do
   server <- createServer respond
