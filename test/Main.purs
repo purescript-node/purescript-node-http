@@ -15,14 +15,14 @@ import Node.Encoding
 foreign import stdout :: forall eff r. Writable r eff
 
 main = do
+  testBasic
+  testHttps
+
+testBasic = do
   server <- createServer respond
   listen server 8080 $ void do
     log "Listening on port 8080."
-    req <- Client.requestFromURI "http://localhost:8080/" \response -> void do
-      log "Response from GET /:"
-      let responseStream = Client.responseAsStream response
-      pipe responseStream stdout
-    end (Client.requestAsStream req) (return unit)
+    simpleReq "http://localhost:8080"
   where
   respond req res = do
     setStatusCode res 200
@@ -41,3 +41,14 @@ main = do
         writeString outputStream UTF8 html(return unit)
         end outputStream (return unit)
       "POST" -> void $ pipe inputStream outputStream
+
+testHttps =
+  simpleReq "https://api.github.com"
+
+simpleReq uri = do
+  log ("GET " <> uri <> ":")
+  req <- Client.requestFromURI uri \response -> void do
+    log "Response:"
+    let responseStream = Client.responseAsStream response
+    pipe responseStream stdout
+  end (Client.requestAsStream req) (return unit)

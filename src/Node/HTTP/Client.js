@@ -3,11 +3,13 @@
 // module Node.HTTP.Client
 
 var http = require('http');
+var https = require('https');
 
 exports.requestImpl = function(opts) {
   return function(k) {
     return function() {
-      return http.request(opts, function(res) {
+      var lib = opts.protocol === 'https:' ? https : http;
+      return lib.request(opts, function(res) {
         k(res)();
       });
     };

@@ -31,6 +31,7 @@ import Data.StrMap (StrMap())
 
 import Node.HTTP (HTTP())
 import Node.Stream (Readable, Writable)
+import Node.URL as URL
 
 import Control.Monad.Eff (Eff)
 
@@ -84,7 +85,7 @@ request = requestImpl <<< options
 
 -- | Make a HTTP request from a URI string and response callback.
 requestFromURI :: forall eff. String -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
-requestFromURI = requestImpl <<< toForeign
+requestFromURI = requestImpl <<< toForeign <<< URL.parse
 
 -- | Create a writable stream from a request object.
 requestAsStream :: forall eff r. Request -> Writable r (http :: HTTP | eff)
