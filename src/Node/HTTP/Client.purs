@@ -23,16 +23,16 @@ module Node.HTTP.Client
   , statusMessage
   ) where
 
-import Prelude
+import Prelude (Unit, (<<<))
 
-import Data.Foreign
-import Data.Options
+import Data.Foreign (Foreign, toForeign)
+import Data.Options (Options, Option, options, opt)
 import Data.StrMap (StrMap())
 
 import Node.HTTP (HTTP())
-import Node.Stream
+import Node.Stream (Readable, Writable)
 
-import Control.Monad.Eff
+import Control.Monad.Eff (Eff)
 
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -44,9 +44,6 @@ foreign import data Response :: *
 
 -- | A HTTP request object
 newtype RequestHeaders = RequestHeaders (StrMap String)
-
-instance requestHeadersIsOption :: IsOption RequestHeaders where
-  assoc k v = assoc (optionFn k) (unsafeCoerce v :: {})
 
 -- | The type of HTTP request options
 data RequestOptions
