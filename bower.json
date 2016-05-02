@@ -1,8 +1,6 @@
 {
   "name": "purescript-node-http",
-  "moduleType": [
-    "node"
-  ],
+  "license": "MIT",
   "ignore": [
     "**/.*",
     "node_modules",
