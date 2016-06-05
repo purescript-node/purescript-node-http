@@ -1,7 +1,5 @@
 "use strict";
 
-// module Node.HTTP
-
 var http = require('http');
 
 exports.createServer = function(handleRequest) {
@@ -20,14 +18,6 @@ exports.listen = function(server) {
           done();
         });
       };
-    };
-  };
-};
-
-exports.writeString = function(res) {
-  return function(s) {
-    return function() {
-      res.write(s);
     };
   };
 };
@@ -64,16 +54,6 @@ exports.setStatusMessage = function(res) {
   return function(message) {
     return function() {
       res.statusMessage = message;
-    };
-  };
-};
-
-exports.end = function(res) {
-  return function(done) {
-    return function() {
-      res.end(null, function() {
-        done();
-      });
     };
   };
 };

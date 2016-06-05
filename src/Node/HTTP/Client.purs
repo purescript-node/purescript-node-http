@@ -25,16 +25,13 @@ module Node.HTTP.Client
 
 import Prelude (Unit, (<<<))
 
+import Control.Monad.Eff (Eff)
 import Data.Foreign (Foreign, toForeign)
 import Data.Options (Options, Option, options, opt)
 import Data.StrMap (StrMap())
-
 import Node.HTTP (HTTP())
 import Node.Stream (Readable, Writable)
 import Node.URL as URL
-
-import Control.Monad.Eff (Eff)
-
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | A HTTP request object

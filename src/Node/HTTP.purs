@@ -4,9 +4,9 @@ module Node.HTTP where
 
 import Prelude
 
-import Data.StrMap
-import Control.Monad.Eff
-import Node.Stream
+import Control.Monad.Eff (Eff)
+import Data.StrMap (StrMap)
+import Node.Stream (Writable, Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | The type of a HTTP server object
