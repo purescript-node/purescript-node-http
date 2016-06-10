@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "purescript-maps": "^1.0.0",
-    "purescript-node-streams": "1.0-updates",
-    "purescript-node-url": "1.0-updates",
+    "purescript-node-streams": "^1.0.0",
+    "purescript-node-url": "^1.0.0",
     "purescript-options": "^1.0.0",
     "purescript-unsafe-coerce": "^1.0.0"
   }
