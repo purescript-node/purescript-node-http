@@ -85,7 +85,7 @@ Get the request URL
 #### `requestAsStream`
 
 ``` purescript
-requestAsStream :: forall eff a. Request -> Readable () (http :: HTTP | eff) a
+requestAsStream :: forall eff. Request -> Readable () (http :: HTTP | eff)
 ```
 
 Coerce the request object into a readable stream.
@@ -125,7 +125,7 @@ Set the status message.
 #### `responseAsStream`
 
 ``` purescript
-responseAsStream :: forall eff a. Response -> Writable () (http :: HTTP | eff) a
+responseAsStream :: forall eff. Response -> Writable () (http :: HTTP | eff)
 ```
 
 Coerce the response object into a writable stream.

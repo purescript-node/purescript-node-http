@@ -1,7 +1,5 @@
 "use strict";
 
-// module Node.HTTP.Client
-
 var http = require('http');
 var https = require('https');
 

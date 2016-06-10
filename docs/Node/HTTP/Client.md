@@ -27,11 +27,6 @@ newtype RequestHeaders
 
 A HTTP request object
 
-##### Instances
-``` purescript
-instance requestHeadersIsOption :: IsOption RequestHeaders
-```
-
 #### `RequestOptions`
 
 ``` purescript
@@ -113,7 +108,7 @@ Make a HTTP request from a URI string and response callback.
 #### `requestAsStream`
 
 ``` purescript
-requestAsStream :: forall eff r a. Request -> Writable r (http :: HTTP | eff) a
+requestAsStream :: forall eff r. Request -> Writable r (http :: HTTP | eff)
 ```
 
 Create a writable stream from a request object.
@@ -121,7 +116,7 @@ Create a writable stream from a request object.
 #### `responseAsStream`
 
 ``` purescript
-responseAsStream :: forall eff w a. Response -> Readable w (http :: HTTP | eff) a
+responseAsStream :: forall eff w. Response -> Readable w (http :: HTTP | eff)
 ```
 
 Create a readable stream from a response object.
