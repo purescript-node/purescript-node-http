@@ -19,16 +19,18 @@ module Node.HTTP.Client
   , setTimeout
   , httpVersion
   , responseHeaders
+  , responseCookies
   , statusCode
   , statusMessage
   ) where
 
-import Prelude (Unit, (<<<))
+import Prelude (Unit, (<<<), ($))
 
 import Control.Monad.Eff (Eff)
+import Data.Maybe (Maybe)
 import Data.Foreign (Foreign, toForeign)
 import Data.Options (Options, Option, options, opt)
-import Data.StrMap (StrMap())
+import Data.StrMap (StrMap(), delete, lookup)
 import Node.HTTP (HTTP())
 import Node.Stream (Readable, Writable)
 import Node.URL as URL
@@ -99,9 +101,17 @@ foreign import setTimeout :: forall eff. Request -> Int -> Eff (http :: HTTP | e
 httpVersion :: Response -> String
 httpVersion = _.httpVersion <<< unsafeCoerce
 
+headers' :: forall a. Response -> StrMap a
+headers' = _.headers <<< unsafeCoerce
+
 -- | Get the response headers as a hash
+-- | Cookies are not included and could be retrieved with responseCookies
 responseHeaders :: Response -> StrMap String
-responseHeaders = _.headers <<< unsafeCoerce
+responseHeaders res = delete "set-cookie" $ headers' res
+
+-- | Get the response cookies as Just (Array String) or Nothing if no cookies
+responseCookies :: Response -> Maybe (Array String)
+responseCookies res = lookup "set-cookie" $ headers' res
 
 -- | Get the response status code
 statusCode :: Response -> Int

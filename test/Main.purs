@@ -7,7 +7,7 @@ import Node.HTTP (HTTP, listen, createServer, setHeader, requestMethod, requestU
 import Node.Stream (Writable, end, pipe, writeString)
 import Node.HTTP.Client as Client
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log)
+import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 import Data.Foldable (foldMap)
 import Partial.Unsafe (unsafeCrashWith)
 
@@ -17,6 +17,7 @@ main :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 main = do
   testBasic
   testHttps
+  testCookies
 
 testBasic :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testBasic = do
@@ -48,10 +49,19 @@ testHttps :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testHttps =
   simpleReq "https://pursuit.purescript.org/packages/purescript-node-http/badge"
 
+testCookies :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+testCookies = 
+  simpleReq 
+    "https://httpbin.org/cookies/set?cookie1=firstcookie&cookie2=secondcookie"
+
 simpleReq :: forall eff. String -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 simpleReq uri = do
   log ("GET " <> uri <> ":")
   req <- Client.requestFromURI uri \response -> void do
+    log "Headers:"
+    logShow $ Client.responseHeaders response
+    log "Cookies:"
+    logShow $ Client.responseCookies response
     log "Response:"
     let responseStream = Client.responseAsStream response
     pipe responseStream stdout
