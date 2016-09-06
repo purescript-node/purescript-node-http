@@ -5,6 +5,7 @@ module Node.HTTP.Client
   , Response()
   , RequestHeaders(..)
   , RequestOptions()
+  , RequestFamily(..)
   , protocol
   , hostname
   , port
@@ -12,6 +13,7 @@ module Node.HTTP.Client
   , path
   , headers
   , auth
+  , family
   , request
   , requestFromURI
   , requestAsStream
@@ -31,6 +33,7 @@ import Data.Maybe (Maybe)
 import Data.Foreign (Foreign, toForeign)
 import Data.Options (Options, Option, options, opt)
 import Data.StrMap (StrMap(), delete, lookup)
+import Data.Functor.Contravariant ((>$<))
 import Node.HTTP (HTTP())
 import Node.Stream (Readable, Writable)
 import Node.URL as URL
@@ -47,6 +50,9 @@ newtype RequestHeaders = RequestHeaders (StrMap String)
 
 -- | The type of HTTP request options
 data RequestOptions
+
+-- | Values for the `family` request option
+data RequestFamily = IPV4 | IPV6
 
 -- | The protocol to use
 protocol :: Option RequestOptions String
@@ -74,6 +80,16 @@ headers = opt "headers"
 -- | Basic authentication
 auth :: Option RequestOptions String
 auth = opt "auth"
+
+-- | IP address family to use when resolving `hostname`.
+-- | Valid values are `IPV6` and `IPV4`
+family :: Option RequestOptions RequestFamily
+family = familyToOption >$< opt "family"
+
+-- | Translates RequestFamily values to Int parameters for Request
+familyToOption :: RequestFamily -> Int
+familyToOption IPV4 = 4
+familyToOption IPV6 = 6
 
 -- | Make a HTTP request using the specified options and response callback.
 foreign import requestImpl :: forall eff. Foreign -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request

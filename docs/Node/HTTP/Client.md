@@ -35,6 +35,16 @@ data RequestOptions
 
 The type of HTTP request options
 
+#### `RequestFamily`
+
+``` purescript
+data RequestFamily
+  = IPV4
+  | IPV6
+```
+
+Values for the `family` request option
+
 #### `protocol`
 
 ``` purescript
@@ -88,6 +98,15 @@ auth :: Option RequestOptions String
 ```
 
 Basic authentication
+
+#### `family`
+
+``` purescript
+family :: Option RequestOptions RequestFamily
+```
+
+IP address family to use when resolving `hostname`.
+Valid values are `IPV6` and `IPV4`
 
 #### `request`
 
@@ -144,6 +163,15 @@ responseHeaders :: Response -> StrMap String
 ```
 
 Get the response headers as a hash
+Cookies are not included and could be retrieved with responseCookies
+
+#### `responseCookies`
+
+``` purescript
+responseCookies :: Response -> Maybe (Array String)
+```
+
+Get the response cookies as Just (Array String) or Nothing if no cookies
 
 #### `statusCode`
 
