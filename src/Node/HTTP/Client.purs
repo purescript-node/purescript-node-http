@@ -13,6 +13,9 @@ module Node.HTTP.Client
   , path
   , headers
   , auth
+  , key
+  , cert
+  , rejectUnauthorized
   , family
   , request
   , requestFromURI
@@ -80,6 +83,18 @@ headers = opt "headers"
 -- | Basic authentication
 auth :: Option RequestOptions String
 auth = opt "auth"
+
+-- | Private Key
+key :: Option RequestOptions String
+key = opt "key"
+
+-- | Public x509 certificate
+cert :: Option RequestOptions String
+cert = opt "cert"
+
+-- | Is cert verified against CAs
+rejectUnauthorized :: Option RequestOptions Boolean
+rejectUnauthorized = opt "rejectUnauthorized"
 
 -- | IP address family to use when resolving `hostname`.
 -- | Valid values are `IPV6` and `IPV4`
