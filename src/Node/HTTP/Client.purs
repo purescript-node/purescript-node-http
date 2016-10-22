@@ -1,10 +1,10 @@
 -- | This module defines low-level bindings to the Node HTTP client.
 
 module Node.HTTP.Client
-  ( Request()
-  , Response()
+  ( Request
+  , Response
   , RequestHeaders(..)
-  , RequestOptions()
+  , RequestOptions
   , RequestFamily(..)
   , protocol
   , hostname
@@ -29,17 +29,20 @@ module Node.HTTP.Client
   , statusMessage
   ) where
 
-import Prelude (Unit, (<<<), ($))
+import Prelude
 
 import Control.Monad.Eff (Eff)
-import Data.Maybe (Maybe)
+
 import Data.Foreign (Foreign, toForeign)
-import Data.Options (Options, Option, options, opt)
-import Data.StrMap (StrMap(), delete, lookup)
 import Data.Functor.Contravariant ((>$<))
-import Node.HTTP (HTTP())
+import Data.Maybe (Maybe)
+import Data.Options (Options, Option, options, opt)
+import Data.StrMap (StrMap, delete, lookup)
+
+import Node.HTTP (HTTP)
 import Node.Stream (Readable, Writable)
 import Node.URL as URL
+
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | A HTTP request object

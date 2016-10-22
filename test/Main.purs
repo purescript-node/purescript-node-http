@@ -2,13 +2,16 @@ module Test.Main where
 
 import Prelude
 
-import Node.Encoding (Encoding(..))
-import Node.HTTP (HTTP, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
-import Node.Stream (Writable, end, pipe, writeString)
-import Node.HTTP.Client as Client
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log, logShow)
+
 import Data.Foldable (foldMap)
+
+import Node.Encoding (Encoding(..))
+import Node.HTTP (HTTP, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
+import Node.HTTP.Client as Client
+import Node.Stream (Writable, end, pipe, writeString)
+
 import Partial.Unsafe (unsafeCrashWith)
 
 foreign import stdout :: forall eff r. Writable r eff
@@ -50,8 +53,8 @@ testHttps =
   simpleReq "https://pursuit.purescript.org/packages/purescript-node-http/badge"
 
 testCookies :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
-testCookies = 
-  simpleReq 
+testCookies =
+  simpleReq
     "https://httpbin.org/cookies/set?cookie1=firstcookie&cookie2=secondcookie"
 
 simpleReq :: forall eff. String -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
