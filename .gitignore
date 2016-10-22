@@ -1,5 +1,8 @@
+/.*
+!/.gitignore
+!/.jscsrc
+!/.jshintrc
+!/.travis.yml
 /bower_components/
 /node_modules/
 /output/
-/.psci*
-/src/.webpack.js
