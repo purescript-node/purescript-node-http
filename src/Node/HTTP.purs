@@ -1,6 +1,28 @@
 -- | This module defines low-level bindings to the Node HTTP module.
 
-module Node.HTTP where
+module Node.HTTP
+  ( Server
+  , Request
+  , Response
+  , HTTP
+
+  , createServer
+  , listen
+  , ListenOptions
+  , listenSocket
+
+  , httpVersion
+  , requestHeaders
+  , requestMethod
+  , requestURL
+  , requestAsStream
+
+  , setHeader
+  , setHeaders
+  , setStatusCode
+  , setStatusMessage
+  , responseAsStream
+  ) where
 
 import Prelude
 
@@ -35,15 +57,15 @@ foreign import listenImpl :: forall eff. Server -> Int -> String -> Nullable Int
 listen :: forall eff. Server -> ListenOptions -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
 listen server opts done = listenImpl server opts.port opts.hostname (toNullable opts.backlog) done
 
--- | Listen on a unix socket. The specified callback will be run when setup is complete.
-foreign import listenSocket :: forall eff. Server -> String -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
-
 -- | Options to be supplied to `listen`. See the [Node API](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_server_listen_handle_callback) for detailed information about these.
 type ListenOptions =
   { hostname :: String
   , port :: Int
   , backlog :: Maybe Int
   }
+
+-- | Listen on a unix socket. The specified callback will be run when setup is complete.
+foreign import listenSocket :: forall eff. Server -> String -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
 
 -- | Get the request HTTP version
 httpVersion :: Request -> String
