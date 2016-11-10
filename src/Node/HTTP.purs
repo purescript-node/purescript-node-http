@@ -6,6 +6,8 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable, toNullable)
 import Data.StrMap (StrMap)
 
 import Node.Stream (Writable, Readable)
@@ -27,8 +29,21 @@ foreign import data HTTP :: !
 -- | Create a HTTP server, given a function to be executed when a request is received.
 foreign import createServer :: forall eff. (Request -> Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Server
 
--- | Listen on the specified port. The specified callback will be run when setup is complete.
-foreign import listen :: forall eff. Server -> Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+foreign import listenImpl :: forall eff. Server -> Int -> String -> Nullable Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+
+-- | Listen on a port in order to start accepting HTTP requests. The specified callback will be run when setup is complete.
+listen :: forall eff. Server -> ListenOptions -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+listen server opts done = listenImpl server opts.port opts.hostname (toNullable opts.backlog) done
+
+-- | Listen on a unix socket. The specified callback will be run when setup is complete.
+foreign import listenSocket :: forall eff. Server -> String -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+
+-- | Options to be supplied to `listen`. See the [Node API](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_server_listen_handle_callback) for detailed information about these.
+type ListenOptions =
+  { hostname :: String
+  , port :: Int
+  , backlog :: Maybe Int
+  }
 
 -- | Get the request HTTP version
 httpVersion :: Request -> String

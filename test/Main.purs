@@ -6,6 +6,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 
 import Data.Foldable (foldMap)
+import Data.Maybe (Maybe(..))
 
 import Node.Encoding (Encoding(..))
 import Node.HTTP (HTTP, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
@@ -25,7 +26,7 @@ main = do
 testBasic :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testBasic = do
   server <- createServer respond
-  listen server 8080 $ void do
+  listen server { hostname: "localhost", port: 8080, backlog: Nothing } $ void do
     log "Listening on port 8080."
     simpleReq "http://localhost:8080"
   where

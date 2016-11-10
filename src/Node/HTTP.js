@@ -10,13 +10,29 @@ exports.createServer = function (handleRequest) {
   };
 };
 
-exports.listen = function (server) {
+exports.listenImpl = function (server) {
   return function (port) {
+    return function (hostname) {
+      return function (backlog) {
+        return function (done) {
+          return function () {
+            if (backlog !== null) {
+              server.listen(port, hostname, backlog, done);
+            } else {
+              server.listen(port, hostname, done);
+            }
+          };
+        };
+      };
+    };
+  };
+};
+
+exports.listenSocket = function (server) {
+  return function (path) {
     return function (done) {
       return function () {
-        server.listen(port, function () {
-          done();
-        });
+        server.listen(path, done);
       };
     };
   };
