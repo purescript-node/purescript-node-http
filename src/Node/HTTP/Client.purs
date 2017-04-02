@@ -46,10 +46,10 @@ import Node.URL as URL
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | A HTTP request object
-foreign import data Request :: *
+foreign import data Request :: Type
 
 -- | A HTTP response object
-foreign import data Response :: *
+foreign import data Response :: Type
 
 -- | A HTTP request object
 newtype RequestHeaders = RequestHeaders (StrMap String)
