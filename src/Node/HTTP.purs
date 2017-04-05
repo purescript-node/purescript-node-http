@@ -26,7 +26,7 @@ module Node.HTTP
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
+import Control.Monad.Eff (Eff, kind Effect)
 
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toNullable)
@@ -37,16 +37,16 @@ import Node.Stream (Writable, Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | The type of a HTTP server object
-foreign import data Server :: *
+foreign import data Server :: Type
 
 -- | A HTTP request object
-foreign import data Request :: *
+foreign import data Request :: Type
 
 -- | A HTTP response object
-foreign import data Response :: *
+foreign import data Response :: Type
 
 -- | The effect associated with using the HTTP module.
-foreign import data HTTP :: !
+foreign import data HTTP :: Effect
 
 -- | Create a HTTP server, given a function to be executed when a request is received.
 foreign import createServer :: forall eff. (Request -> Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Server

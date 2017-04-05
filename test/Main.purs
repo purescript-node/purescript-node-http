@@ -44,7 +44,7 @@ testBasic = do
               , "</form>"
               ]
         setHeader res "Content-Type" "text/html"
-        writeString outputStream UTF8 html (pure unit)
+        _ <- writeString outputStream UTF8 html (pure unit)
         end outputStream (pure unit)
       "POST" -> void $ pipe inputStream outputStream
       _ -> unsafeCrashWith "Unexpected HTTP method"
