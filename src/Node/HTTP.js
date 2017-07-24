@@ -1,17 +1,6 @@
 "use strict";
 
 var http = require("http");
-var https = require("https");
-
-exports.createServerSImpl = function (options) {
-  return function (handleRequest) {
-    return function () {
-      return https.createServer(options, function (req, res) {
-        handleRequest(req)(res)();
-      });
-    };
-  };
-};
 
 exports.createServer = function (handleRequest) {
   return function () {

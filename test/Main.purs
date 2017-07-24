@@ -10,8 +10,9 @@ import Data.Maybe (Maybe(..))
 import Data.Options (Options, (:=))
 
 import Node.Encoding (Encoding(..))
-import Node.HTTP (HTTP, Request, Response, listen, createServer, createServerS, key, cert, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
+import Node.HTTP (HTTP, Request, Response, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
 import Node.HTTP.Client as Client
+import Node.HTTP.HTTPS as HTTPS
 import Node.Stream (Writable, end, pipe, writeString)
 
 import Partial.Unsafe (unsafeCrashWith)
@@ -109,7 +110,7 @@ TbGfXbnVfNmqgQh71+k02p6S
 
 testHttpsServer :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testHttpsServer = do
-  server <- createServerS (key := mockKey <> cert := mockCert) respond
+  server <- HTTPS.createServer (HTTPS.key := mockKey <> HTTPS.cert := mockCert) respond
   listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
     log "Listening on port 8081."
     complexReq $
