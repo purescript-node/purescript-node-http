@@ -20,6 +20,7 @@
     "purescript-node-url": "^3.0.0",
     "purescript-options": "^3.0.0",
     "purescript-unsafe-coerce": "^3.0.0",
-    "purescript-node-buffer": "^3.0.1"
+    "purescript-node-buffer": "^3.0.1",
+    "purescript-arraybuffer-types": "^2.0.0"
   }
 }

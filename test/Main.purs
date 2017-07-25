@@ -110,7 +110,7 @@ TbGfXbnVfNmqgQh71+k02p6S
 
 testHttpsServer :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testHttpsServer = do
-  server <- HTTPS.createServer (HTTPS.key := mockKey <> HTTPS.cert := mockCert) respond
+  server <- HTTPS.createServer sslOpts respond
   listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
     log "Listening on port 8081."
     complexReq $
@@ -120,6 +120,10 @@ testHttpsServer = do
       Client.port := 8081 <>
       Client.path := "/" <>
       Client.rejectUnauthorized := false
+  where
+    sslOpts =
+      HTTPS.key := HTTPS.KeyString mockKey <>
+      HTTPS.cert := HTTPS.CertString mockCert
 
 testHttps :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testHttps =
