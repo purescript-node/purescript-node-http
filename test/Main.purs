@@ -7,12 +7,12 @@ import Control.Monad.Eff.Console (CONSOLE, log, logShow)
 
 import Data.Foldable (foldMap)
 import Data.Maybe (Maybe(..))
-import Data.Options (Options, (:=))
+import Data.Options (Options, options, (:=))
 
 import Node.Encoding (Encoding(..))
 import Node.HTTP (HTTP, Request, Response, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
 import Node.HTTP.Client as Client
-import Node.HTTP.HTTPS as HTTPS
+import Node.HTTP.Secure as HTTPS
 import Node.Stream (Writable, end, pipe, writeString)
 
 import Partial.Unsafe (unsafeCrashWith)
@@ -141,12 +141,12 @@ simpleReq uri = do
   end (Client.requestAsStream req) (pure unit)
 
 complexReq :: forall eff. Options Client.RequestOptions -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
-complexReq options = do
-  log $ opts.method <> " " <> opts.hostname <> opts.path <> ":"
-  req <- Client.request options logResponse
+complexReq opts = do
+  log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> optsR.port <> optsR.path <> ":"
+  req <- Client.request opts logResponse
   end (Client.requestAsStream req) (pure unit)
   where
-    opts = unsafeCoerce options
+    optsR = unsafeCoerce $ options opts
 
 logResponse :: forall eff. Client.Response -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 logResponse response = void do

@@ -1,6 +1,6 @@
 -- | This module defines low-level bindings to the Node HTTPS module.
 
-module Node.HTTP.HTTPS
+module Node.HTTP.Secure
   ( createServer
 
   , SSLOptions
