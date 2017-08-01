@@ -7,28 +7,72 @@ module Node.HTTP.Secure
   , handshakeTimeout
   , requestCert
   , rejectUnauthorized
-  , NPNProtocols(..)
+
+  , NPNProtocols
+  , npnProtocolsString
+  , npnProtocolsBuffer
+  , npnProtocolsUint8Array
+  , npnProtocolsStringArray
+  , npnProtocolsBufferArray
+  , npnProtocolsUint8ArrayArray
   , npnProtocols
-  , ALPNProtocols(..)
+
+  , ALPNProtocols
+  , alpnProtocolsString
+  , alpnProtocolsBuffer
+  , alpnProtocolsUint8Array
+  , alpnProtocolsStringArray
+  , alpnProtocolsBufferArray
+  , alpnProtocolsUint8ArrayArray
   , alpnProtocols
+
   , sessionTimeout
   , ticketKeys
-  , PFX(..)
+
+  , PFX
+  , pfxString
+  , pfxBuffer
   , pfx
-  , Key(..)
+
+  , Key
+  , keyString
+  , keyBuffer
+  , keyStringArray
+  , keyBufferArray
   , key
+
   , passphrase
-  , Cert(..)
+
+  , Cert
+  , certString
+  , certBuffer
+  , certStringArray
+  , certBufferArray
   , cert
-  , CA(..)
+
+  , CA
+  , caString
+  , caBuffer
+  , caStringArray
+  , caBufferArray
   , ca
-  , CRL(..)
+
+  , CRL
+  , crlString
+  , crlBuffer
+  , crlStringArray
+  , crlBufferArray
   , crl
+
   , ciphers
   , honorCipherOrder
   , ecdhCurve
-  , DHParam(..)
+
+  , DHParam
+  , dhparamString
+  , dhparamBuffer
   , dhparam
+
   , secureProtocol
   , secureOptions
   , sessionIdContext
@@ -38,11 +82,11 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import Data.ArrayBuffer.Types (Uint8Array)
-import Data.Foreign (Foreign, toForeign)
-import Data.Functor.Contravariant (cmap)
+import Data.Foreign (Foreign)
 import Data.Options (Options, Option, options, opt)
 import Node.Buffer (Buffer)
 import Node.HTTP (Request, Response, Server, HTTP)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | The type of HTTPS server options
 data SSLOptions
@@ -62,44 +106,42 @@ rejectUnauthorized = opt "rejectUnauthorized"
 -- | The npnProtocols option can be a String, a Buffer, a Uint8Array, or an
 -- | array of any of those types.
 data NPNProtocols
-  = NPNProtocolsString String
-  | NPNProtocolsBuffer Buffer
-  | NPNProtocolsUint8Array Uint8Array
-  | NPNProtocolsStringArray (Array String)
-  | NPNProtocolsBufferArray (Array Buffer)
-  | NPNProtocolsUint8ArrayArray (Array Uint8Array)
+npnProtocolsString :: String -> NPNProtocols
+npnProtocolsString = unsafeCoerce
+npnProtocolsBuffer :: Buffer -> NPNProtocols
+npnProtocolsBuffer = unsafeCoerce
+npnProtocolsUint8Array :: Uint8Array -> NPNProtocols
+npnProtocolsUint8Array = unsafeCoerce
+npnProtocolsStringArray :: Array String -> NPNProtocols
+npnProtocolsStringArray = unsafeCoerce
+npnProtocolsBufferArray :: Array Buffer -> NPNProtocols
+npnProtocolsBufferArray = unsafeCoerce
+npnProtocolsUint8ArrayArray :: Array Uint8Array -> NPNProtocols
+npnProtocolsUint8ArrayArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createserver_options_secureconnectionlistener)
 npnProtocols :: Option SSLOptions NPNProtocols
-npnProtocols = cmap extract $ opt "NPNProtocols"
-  where
-    extract (NPNProtocolsString s) = toForeign s
-    extract (NPNProtocolsBuffer b) = toForeign b
-    extract (NPNProtocolsUint8Array u) = toForeign u
-    extract (NPNProtocolsStringArray sa) = toForeign sa
-    extract (NPNProtocolsBufferArray ba) = toForeign ba
-    extract (NPNProtocolsUint8ArrayArray ua) = toForeign ua
+npnProtocols = opt "NPNProtocols"
 
 -- | The alpnProtocols option can be a String, a Buffer, a Uint8Array, or an
 -- | array of any of those types.
 data ALPNProtocols
-  = ALPNProtocolsString String
-  | ALPNProtocolsBuffer Buffer
-  | ALPNProtocolsUint8Array Uint8Array
-  | ALPNProtocolsStringArray (Array String)
-  | ALPNProtocolsBufferArray (Array Buffer)
-  | ALPNProtocolsUint8ArrayArray (Array Uint8Array)
+alpnProtocolsString :: String -> ALPNProtocols
+alpnProtocolsString = unsafeCoerce
+alpnProtocolsBuffer :: Buffer -> ALPNProtocols
+alpnProtocolsBuffer = unsafeCoerce
+alpnProtocolsUint8Array :: Uint8Array -> ALPNProtocols
+alpnProtocolsUint8Array = unsafeCoerce
+alpnProtocolsStringArray :: Array String -> ALPNProtocols
+alpnProtocolsStringArray = unsafeCoerce
+alpnProtocolsBufferArray :: Array Buffer -> ALPNProtocols
+alpnProtocolsBufferArray = unsafeCoerce
+alpnProtocolsUint8ArrayArray :: Array Uint8Array -> ALPNProtocols
+alpnProtocolsUint8ArrayArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createserver_options_secureconnectionlistener)
 alpnProtocols :: Option SSLOptions ALPNProtocols
-alpnProtocols = cmap extract $ opt "ALPNProtocols"
-  where
-    extract (ALPNProtocolsString s) = toForeign s
-    extract (ALPNProtocolsBuffer b) = toForeign b
-    extract (ALPNProtocolsUint8Array u) = toForeign u
-    extract (ALPNProtocolsStringArray sa) = toForeign sa
-    extract (ALPNProtocolsBufferArray ba) = toForeign ba
-    extract (ALPNProtocolsUint8ArrayArray ua) = toForeign ua
+alpnProtocols = opt "ALPNProtocols"
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createserver_options_secureconnectionlistener)
 sessionTimeout :: Option SSLOptions Int
@@ -110,31 +152,31 @@ ticketKeys :: Option SSLOptions Buffer
 ticketKeys = opt "ticketKeys"
 
 -- | The PFX option can take either a String or a Buffer
-data PFX = PFXString String | PFXBuffer Buffer
+data PFX
+pfxString :: String -> PFX
+pfxString = unsafeCoerce
+pfxBuffer :: Buffer -> PFX
+pfxBuffer = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 pfx :: Option SSLOptions PFX
-pfx = cmap extract $ opt "pfx"
-  where
-    extract (PFXString s) = toForeign s
-    extract (PFXBuffer b) = toForeign b
+pfx = opt "pfx"
 
 -- | The key option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data Key
-  = KeyString String
-  | KeyBuffer Buffer
-  | KeyStringArray (Array String)
-  | KeyBufferArray (Array Buffer)
+keyString :: String -> Key
+keyString = unsafeCoerce
+keyBuffer :: Buffer -> Key
+keyBuffer = unsafeCoerce
+keyStringArray :: Array String -> Key
+keyStringArray = unsafeCoerce
+keyBufferArray :: Array Buffer -> Key
+keyBufferArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 key :: Option SSLOptions Key
-key = cmap extract $ opt "key"
-  where
-    extract (KeyString s) = toForeign s
-    extract (KeyBuffer b) = toForeign b
-    extract (KeyStringArray sa) = toForeign sa
-    extract (KeyBufferArray ba) = toForeign ba
+key = opt "key"
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 passphrase :: Option SSLOptions String
@@ -143,53 +185,50 @@ passphrase = opt "passphrase"
 -- | The cert option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data Cert
-  = CertString String
-  | CertBuffer Buffer
-  | CertStringArray (Array String)
-  | CertBufferArray (Array Buffer)
+certString :: String -> Cert
+certString = unsafeCoerce
+certBuffer :: Buffer -> Cert
+certBuffer = unsafeCoerce
+certStringArray :: Array String -> Cert
+certStringArray = unsafeCoerce
+certBufferArray :: Array Buffer -> Cert
+certBufferArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 cert :: Option SSLOptions Cert
-cert = cmap extract $ opt "cert"
-  where
-    extract (CertString s) = toForeign s
-    extract (CertBuffer b) = toForeign b
-    extract (CertStringArray sa) = toForeign sa
-    extract (CertBufferArray ba) = toForeign ba
+cert = opt "cert"
 
 -- | The CA option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data CA
-  = CAString String
-  | CABuffer Buffer
-  | CAStringArray (Array String)
-  | CABufferArray (Array Buffer)
+caString :: String -> CA
+caString = unsafeCoerce
+caBuffer :: Buffer -> CA
+caBuffer = unsafeCoerce
+caStringArray :: Array String -> CA
+caStringArray = unsafeCoerce
+caBufferArray :: Array Buffer -> CA
+caBufferArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 ca :: Option SSLOptions CA
-ca = cmap extract $ opt "ca"
-  where
-    extract (CAString s) = toForeign s
-    extract (CABuffer b) = toForeign b
-    extract (CAStringArray sa) = toForeign sa
-    extract (CABufferArray ba) = toForeign ba
+ca = opt "ca"
 
 -- | The CRL option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data CRL
-  = CRLString String
-  | CRLBuffer Buffer
-  | CRLStringArray (Array String)
-  | CRLBufferArray (Array Buffer)
+crlString :: String -> CRL
+crlString = unsafeCoerce
+crlBuffer :: Buffer -> CRL
+crlBuffer = unsafeCoerce
+crlStringArray :: Array String -> CRL
+crlStringArray = unsafeCoerce
+crlBufferArray :: Array Buffer -> CRL
+crlBufferArray = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 crl :: Option SSLOptions CRL
-crl = cmap extract $ opt "crl"
-  where
-    extract (CRLString s) = toForeign s
-    extract (CRLBuffer b) = toForeign b
-    extract (CRLStringArray sa) = toForeign sa
-    extract (CRLBufferArray ba) = toForeign ba
+crl = opt "crl"
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 ciphers :: Option SSLOptions String
@@ -204,14 +243,15 @@ ecdhCurve :: Option SSLOptions String
 ecdhCurve = opt "ecdhCurve"
 
 -- | The DHParam option can take either a String or a Buffer
-data DHParam = DHParamString String | DHParamBuffer Buffer
+data DHParam
+dhparamString :: String -> DHParam
+dhparamString = unsafeCoerce
+dhparamBuffer :: Buffer -> DHParam
+dhparamBuffer = unsafeCoerce
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 dhparam :: Option SSLOptions DHParam
-dhparam = cmap extract $ opt "dhparam"
-  where
-    extract (DHParamString s) = toForeign s
-    extract (DHParamBuffer b) = toForeign b
+dhparam = opt "dhparam"
 
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 secureProtocol :: Option SSLOptions String

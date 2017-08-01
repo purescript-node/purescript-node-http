@@ -122,8 +122,8 @@ testHttpsServer = do
       Client.rejectUnauthorized := false
   where
     sslOpts =
-      HTTPS.key := HTTPS.KeyString mockKey <>
-      HTTPS.cert := HTTPS.CertString mockCert
+      HTTPS.key := HTTPS.keyString mockKey <>
+      HTTPS.cert := HTTPS.certString mockCert
 
 testHttps :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
 testHttps =
