@@ -91,6 +91,22 @@ import Unsafe.Coerce (unsafeCoerce)
 -- | The type of HTTPS server options
 data SSLOptions
 
+-- | Create an HTTPS server, given the SSL options and a function to be executed
+-- | when a request is received.
+foreign import createServerImpl ::
+  forall eff.
+  Foreign ->
+  (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
+  Eff (http :: HTTP | eff) Server
+
+-- | Create an HTTPS server, given the SSL options and a function to be executed
+-- | when a request is received.
+createServer :: forall eff.
+                Options SSLOptions ->
+                (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
+                Eff (http :: HTTP | eff) Server
+createServer = createServerImpl <<< options
+
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createserver_options_secureconnectionlistener)
 handshakeTimeout :: Option SSLOptions Int
 handshakeTimeout = opt "handshakeTimeout"
@@ -264,19 +280,3 @@ secureOptions = opt "secureOptions"
 -- | See the [node docs](https://nodejs.org/api/tls.html#tls_tls_createsecurecontext_options)
 sessionIdContext :: Option SSLOptions String
 sessionIdContext = opt "sessionIdContext"
-
--- | Create an HTTPS server, given the SSL options and a function to be executed
--- | when a request is received.
-foreign import createServerImpl ::
-  forall eff.
-  Foreign ->
-  (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
-  Eff (http :: HTTP | eff) Server
-
--- | Create an HTTPS server, given the SSL options and a function to be executed
--- | when a request is received.
-createServer :: forall eff.
-                Options SSLOptions ->
-                (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
-                Eff (http :: HTTP | eff) Server
-createServer = createServerImpl <<< options
