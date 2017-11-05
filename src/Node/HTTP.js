@@ -28,6 +28,14 @@ exports.listenImpl = function (server) {
   };
 };
 
+exports.closeImpl = function (server) {
+  return function (done) {
+    return function () {
+      server.close(done);
+    };
+  };
+};
+
 exports.listenSocket = function (server) {
   return function (path) {
     return function (done) {
