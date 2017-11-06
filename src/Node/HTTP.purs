@@ -8,6 +8,7 @@ module Node.HTTP
 
   , createServer
   , listen
+  , close
   , ListenOptions
   , listenSocket
 
@@ -53,9 +54,15 @@ foreign import createServer :: forall eff. (Request -> Response -> Eff (http :: 
 
 foreign import listenImpl :: forall eff. Server -> Int -> String -> Nullable Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
 
+foreign import closeImpl :: forall eff. Server -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+
 -- | Listen on a port in order to start accepting HTTP requests. The specified callback will be run when setup is complete.
 listen :: forall eff. Server -> ListenOptions -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
 listen server opts done = listenImpl server opts.port opts.hostname (toNullable opts.backlog) done
+
+-- | Close a listening HTTP server. The specified callback will be run the server closing is complete.
+close :: forall eff. Server -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+close server done = closeImpl server done
 
 -- | Options to be supplied to `listen`. See the [Node API](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_server_listen_handle_callback) for detailed information about these.
 type ListenOptions =
