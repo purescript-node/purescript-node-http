@@ -2,32 +2,29 @@ module Test.Main where
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE, log, logShow)
-
 import Data.Foldable (foldMap)
 import Data.Maybe (Maybe(..))
 import Data.Options (Options, options, (:=))
-
+import Effect (Effect)
+import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
-import Node.HTTP (HTTP, Request, Response, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
+import Node.HTTP (Request, Response, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
 import Node.HTTP.Client as Client
 import Node.HTTP.Secure as HTTPS
 import Node.Stream (Writable, end, pipe, writeString)
-
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
 
-foreign import stdout :: forall eff r. Writable r eff
+foreign import stdout :: forall r. Writable r
 
-main :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+main :: Effect Unit
 main = do
   testBasic
   testHttpsServer
   testHttps
   testCookies
 
-respond :: forall eff. Request -> Response -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+respond :: Request -> Response -> Effect Unit
 respond req res = do
   setStatusCode res 200
   let inputStream  = requestAsStream req
@@ -47,7 +44,7 @@ respond req res = do
     "POST" -> void $ pipe inputStream outputStream
     _ -> unsafeCrashWith "Unexpected HTTP method"
 
-testBasic :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+testBasic :: Effect Unit
 testBasic = do
   server <- createServer respond
   listen server { hostname: "localhost", port: 8080, backlog: Nothing } $ void do
@@ -108,7 +105,7 @@ FO0u08Tb/091Bir5kgglUSi7VnFD3v8ffeKpkkJvtYUj7S9yoH9NQPVhKVCq6mna
 TbGfXbnVfNmqgQh71+k02p6S
 -----END PRIVATE KEY-----"""
 
-testHttpsServer :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+testHttpsServer :: Effect Unit
 testHttpsServer = do
   server <- HTTPS.createServer sslOpts respond
   listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
@@ -125,22 +122,22 @@ testHttpsServer = do
       HTTPS.key := HTTPS.keyString mockKey <>
       HTTPS.cert := HTTPS.certString mockCert
 
-testHttps :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+testHttps :: Effect Unit
 testHttps =
   simpleReq "https://pursuit.purescript.org/packages/purescript-node-http/badge"
 
-testCookies :: forall eff. Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+testCookies :: Effect Unit
 testCookies =
   simpleReq
     "https://httpbin.org/cookies/set?cookie1=firstcookie&cookie2=secondcookie"
 
-simpleReq :: forall eff. String -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+simpleReq :: String -> Effect Unit
 simpleReq uri = do
   log ("GET " <> uri <> ":")
   req <- Client.requestFromURI uri logResponse
   end (Client.requestAsStream req) (pure unit)
 
-complexReq :: forall eff. Options Client.RequestOptions -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+complexReq :: Options Client.RequestOptions -> Effect Unit
 complexReq opts = do
   log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> optsR.port <> optsR.path <> ":"
   req <- Client.request opts logResponse
@@ -148,7 +145,7 @@ complexReq opts = do
   where
     optsR = unsafeCoerce $ options opts
 
-logResponse :: forall eff. Client.Response -> Eff (console :: CONSOLE, http :: HTTP | eff) Unit
+logResponse :: Client.Response -> Effect Unit
 logResponse response = void do
   log "Headers:"
   logShow $ Client.responseHeaders response
