@@ -80,28 +80,26 @@ module Node.HTTP.Secure
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
 import Data.ArrayBuffer.Types (Uint8Array)
-import Data.Foreign (Foreign)
 import Data.Options (Options, Option, options, opt)
+import Effect (Effect)
+import Foreign (Foreign)
 import Node.Buffer (Buffer)
-import Node.HTTP (Request, Response, Server, HTTP)
+import Node.HTTP (Server, Request, Response)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Create an HTTPS server, given the SSL options and a function to be executed
 -- | when a request is received.
 foreign import createServerImpl ::
-  forall eff.
   Foreign ->
-  (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
-  Eff (http :: HTTP | eff) Server
+  (Request -> Response -> Effect Unit) ->
+  Effect Server
 
 -- | Create an HTTPS server, given the SSL options and a function to be executed
 -- | when a request is received.
-createServer :: forall eff.
-                Options SSLOptions ->
-                (Request -> Response -> Eff (http :: HTTP | eff) Unit) ->
-                Eff (http :: HTTP | eff) Server
+createServer :: Options SSLOptions ->
+                (Request -> Response -> Effect Unit) ->
+                Effect Server
 createServer = createServerImpl <<< options
 
 -- | The type of HTTPS server options
