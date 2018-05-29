@@ -31,18 +31,15 @@ module Node.HTTP.Client
 
 import Prelude
 
-import Control.Monad.Eff (Eff)
-
-import Data.Foreign (Foreign, toForeign)
 import Data.Functor.Contravariant ((>$<))
 import Data.Maybe (Maybe)
-import Data.Options (Options, Option, options, opt)
-import Data.StrMap (StrMap, delete, lookup)
-
-import Node.HTTP (HTTP)
+import Data.Options (Option, Options, opt, options)
+import Effect (Effect)
+import Foreign (Foreign, unsafeToForeign)
+import Foreign.Object (Object)
+import Foreign.Object as Object
 import Node.Stream (Readable, Writable)
 import Node.URL as URL
-
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | A HTTP request object
@@ -52,7 +49,7 @@ foreign import data Request :: Type
 foreign import data Response :: Type
 
 -- | A HTTP request object
-newtype RequestHeaders = RequestHeaders (StrMap String)
+newtype RequestHeaders = RequestHeaders (Object String)
 
 -- | The type of HTTP request options
 data RequestOptions
@@ -110,42 +107,42 @@ familyToOption IPV4 = 4
 familyToOption IPV6 = 6
 
 -- | Make a HTTP request using the specified options and response callback.
-foreign import requestImpl :: forall eff. Foreign -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
+foreign import requestImpl :: Foreign -> (Response -> Effect Unit) -> Effect Request
 
 -- | Make a HTTP request using the specified options and response callback.
-request :: forall eff. Options RequestOptions -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
+request :: Options RequestOptions -> (Response -> Effect Unit) -> Effect Request
 request = requestImpl <<< options
 
 -- | Make a HTTP request from a URI string and response callback.
-requestFromURI :: forall eff. String -> (Response -> Eff (http :: HTTP | eff) Unit) -> Eff (http :: HTTP | eff) Request
-requestFromURI = requestImpl <<< toForeign <<< URL.parse
+requestFromURI :: String -> (Response -> Effect Unit) -> Effect Request
+requestFromURI = requestImpl <<< unsafeToForeign <<< URL.parse
 
 -- | Create a writable stream from a request object.
-requestAsStream :: forall eff r. Request -> Writable r (http :: HTTP | eff)
+requestAsStream :: forall r. Request -> Writable r
 requestAsStream = unsafeCoerce
 
 -- | Create a readable stream from a response object.
-responseAsStream :: forall eff w. Response -> Readable w (http :: HTTP | eff)
+responseAsStream :: forall w. Response -> Readable w
 responseAsStream = unsafeCoerce
 
 -- | Set the socket timeout for a `Request`
-foreign import setTimeout :: forall eff. Request -> Int -> Eff (http :: HTTP | eff) Unit -> Eff (http :: HTTP | eff) Unit
+foreign import setTimeout :: Request -> Int -> Effect Unit -> Effect Unit
 
 -- | Get the request HTTP version
 httpVersion :: Response -> String
 httpVersion = _.httpVersion <<< unsafeCoerce
 
-headers' :: forall a. Response -> StrMap a
+headers' :: forall a. Response -> Object a
 headers' = _.headers <<< unsafeCoerce
 
 -- | Get the response headers as a hash
 -- | Cookies are not included and could be retrieved with responseCookies
-responseHeaders :: Response -> StrMap String
-responseHeaders res = delete "set-cookie" $ headers' res
+responseHeaders :: Response -> Object String
+responseHeaders res = Object.delete "set-cookie" $ headers' res
 
 -- | Get the response cookies as Just (Array String) or Nothing if no cookies
 responseCookies :: Response -> Maybe (Array String)
-responseCookies res = lookup "set-cookie" $ headers' res
+responseCookies res = Object.lookup "set-cookie" $ headers' res
 
 -- | Get the response status code
 statusCode :: Response -> Int

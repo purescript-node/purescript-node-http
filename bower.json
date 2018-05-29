@@ -12,15 +12,21 @@
     "url": "git://github.com/purescript-node/purescript-node-http.git"
   },
   "devDependencies": {
-    "purescript-console": "^3.0.0"
+    "purescript-console": "^4.1.0"
   },
   "dependencies": {
-    "purescript-maps": "^3.0.0",
-    "purescript-node-streams": "^3.0.0",
-    "purescript-node-url": "^3.0.0",
-    "purescript-options": "^3.0.0",
-    "purescript-unsafe-coerce": "^3.0.0",
-    "purescript-node-buffer": "^3.0.1",
-    "purescript-arraybuffer-types": "^2.0.0"
+    "purescript-arraybuffer-types": "^2.0.0",
+    "purescript-contravariant": "^4.0.0",
+    "purescript-effect": "^2.0.0",
+    "purescript-foreign": "^5.0.0",
+    "purescript-foreign-object": "^1.0.0",
+    "purescript-maybe": "^4.0.0",
+    "purescript-node-buffer": "^5.0.0",
+    "purescript-node-streams": "^4.0.0",
+    "purescript-node-url": "^4.0.0",
+    "purescript-nullable": "^4.0.0",
+    "purescript-options": "^4.0.0",
+    "purescript-prelude": "^4.0.0",
+    "purescript-unsafe-coerce": "^4.0.0"
   }
 }
