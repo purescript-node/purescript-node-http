@@ -35,7 +35,7 @@ import Data.Functor.Contravariant ((>$<))
 import Data.Maybe (Maybe)
 import Data.Options (Option, Options, opt, options)
 import Effect (Effect)
-import Foreign (Foreign, toForeign)
+import Foreign (Foreign, unsafeToForeign)
 import Foreign.Object (Object)
 import Foreign.Object as Object
 import Node.Stream (Readable, Writable)
@@ -115,7 +115,7 @@ request = requestImpl <<< options
 
 -- | Make a HTTP request from a URI string and response callback.
 requestFromURI :: String -> (Response -> Effect Unit) -> Effect Request
-requestFromURI = requestImpl <<< toForeign <<< URL.parse
+requestFromURI = requestImpl <<< unsafeToForeign <<< URL.parse
 
 -- | Create a writable stream from a request object.
 requestAsStream :: forall r. Request -> Writable r
