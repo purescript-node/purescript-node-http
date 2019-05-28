@@ -19,13 +19,13 @@
     "purescript-contravariant": "^4.0.0",
     "purescript-effect": "^2.0.0",
     "purescript-foreign": "^5.0.0",
-    "purescript-foreign-object": "^2.0.0",
+    "purescript-foreign-object": ">=1.0.0 <3.0.0",
     "purescript-maybe": "^4.0.0",
     "purescript-node-buffer": "^5.0.0",
     "purescript-node-streams": "^4.0.0",
     "purescript-node-url": "^4.0.0",
     "purescript-nullable": "^4.0.0",
-    "purescript-options": "^5.0.0",
+    "purescript-options": ">=4.0.0 <6.0.0",
     "purescript-prelude": "^4.0.0",
     "purescript-unsafe-coerce": "^4.0.0"
   }
