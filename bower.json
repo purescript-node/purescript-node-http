@@ -21,7 +21,7 @@
     "purescript-foreign": "^5.0.0",
     "purescript-foreign-object": ">=1.0.0 <3.0.0",
     "purescript-maybe": "^4.0.0",
-    "purescript-node-buffer": "^5.0.0",
+    "purescript-node-buffer": ">=5.0.0 <7.0.0",
     "purescript-node-streams": "^4.0.0",
     "purescript-node-url": "^4.0.0",
     "purescript-nullable": "^4.0.0",
