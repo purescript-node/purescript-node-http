@@ -15,17 +15,17 @@
     "purescript-console": "master"
   },
   "dependencies": {
-    "purescript-arraybuffer-types": "master",
+    "purescript-arraybuffer-types": "main",
     "purescript-contravariant": "master",
     "purescript-effect": "master",
     "purescript-foreign": "master",
-    "purescript-foreign-object": ">=1.0.0 <3.0.0",
+    "purescript-foreign-object": "master",
     "purescript-maybe": "master",
-    "purescript-node-buffer": ">=5.0.0 <7.0.0",
+    "purescript-node-buffer": "master",
     "purescript-node-streams": "master",
     "purescript-node-url": "master",
-    "purescript-nullable": "master",
-    "purescript-options": ">=4.0.0 <6.0.0",
+    "purescript-nullable": "main",
+    "purescript-options": "main",
     "purescript-prelude": "master",
     "purescript-unsafe-coerce": "master"
   }
