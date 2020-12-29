@@ -22,6 +22,7 @@
     "purescript-foreign-object": "master",
     "purescript-maybe": "master",
     "purescript-node-buffer": "master",
+    "purescript-node-net": "master",
     "purescript-node-streams": "master",
     "purescript-node-url": "master",
     "purescript-nullable": "main",
