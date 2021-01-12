@@ -3,14 +3,17 @@ module Test.Main where
 import Prelude
 
 import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Options (Options, options, (:=))
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log, logShow)
+import Foreign.Object (fromFoldable, lookup)
 import Node.Encoding (Encoding(..))
-import Node.HTTP (Request, Response, listen, createServer, setHeader, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode)
+import Node.HTTP (Request, Response, listen, createServer, setHeader, requestHeaders, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode, onUpgrade)
 import Node.HTTP.Client as Client
 import Node.HTTP.Secure as HTTPS
+import Node.Net.Socket as Socket
 import Node.Stream (Writable, end, pipe, writeString)
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
@@ -20,6 +23,7 @@ foreign import stdout :: forall r. Writable r
 main :: Effect Unit
 main = do
   testBasic
+  testUpgrade
   testHttpsServer
   testHttps
   testCookies
@@ -154,3 +158,67 @@ logResponse response = void do
   log "Response:"
   let responseStream = Client.responseAsStream response
   pipe responseStream stdout
+
+testUpgrade :: Effect Unit
+testUpgrade = do
+  server <- createServer respond
+  onUpgrade server handleUpgrade
+  listen server { hostname: "localhost", port: 3000, backlog: Nothing }
+    $ void do
+        log "Listening on port 3000."
+        sendRequests
+  where
+  handleUpgrade req socket buffer = do
+    let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ requestHeaders req
+    if upgradeHeader == "websocket" then
+      void $ Socket.writeString
+        socket
+        "HTTP/1.1 101 Switching Protocols\r\nContent-Length: 0\r\n\r\n"
+        UTF8
+        $ pure unit
+    else
+      void $ Socket.writeString
+        socket
+        "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
+        UTF8
+        $ pure unit
+
+  sendRequests = do
+    -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
+    reqSimple <- Client.request (Client.port := 3000) \response -> do
+      if (Client.statusCode response /= 200) then
+        unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
+      else
+          pure unit
+    end (Client.requestAsStream reqSimple) (pure unit)
+    {-
+      These two requests test that the upgrade callback is called and that it has
+      access to the original request and can write to the underlying TCP socket
+    -}
+    let headers = Client.RequestHeaders $ fromFoldable
+                   [ Tuple "Connection" "upgrade"
+                   , Tuple "Upgrade" "something"
+                   ]
+    reqUpgrade <- Client.request
+     (Client.port := 3000 <> Client.headers := headers)
+     \response -> do
+       if (Client.statusCode response /= 426) then
+         unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
+       else
+          pure unit
+    end (Client.requestAsStream reqUpgrade) (pure unit)
+
+    let wsHeaders = Client.RequestHeaders $ fromFoldable
+                     [ Tuple "Connection" "upgrade"
+                     , Tuple "Upgrade" "websocket"
+                     ]
+
+    reqWSUpgrade <- Client.request
+     (Client.port := 3000 <> Client.headers := wsHeaders)
+     \response -> do
+       if (Client.statusCode response /= 101) then
+         unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
+       else
+         pure unit
+    end (Client.requestAsStream reqWSUpgrade) (pure unit)
+    pure unit

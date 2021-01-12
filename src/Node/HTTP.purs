@@ -10,6 +10,7 @@ module Node.HTTP
   , close
   , ListenOptions
   , listenSocket
+  , onUpgrade
 
   , httpVersion
   , requestHeaders
@@ -30,6 +31,8 @@ import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toNullable)
 import Effect (Effect)
 import Foreign.Object (Object)
+import Node.Buffer (Buffer)
+import Node.Net.Socket (Socket)
 import Node.Stream (Writable, Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -66,6 +69,9 @@ type ListenOptions =
 
 -- | Listen on a unix socket. The specified callback will be run when setup is complete.
 foreign import listenSocket :: Server -> String -> Effect Unit -> Effect Unit
+
+-- | Listen to `upgrade` events on the server
+foreign import onUpgrade :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
 
 -- | Get the request HTTP version
 httpVersion :: Request -> String
