@@ -15,7 +15,7 @@ Other improvements:
 ## [v6.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v6.0.0) - 2021-MONTH-DAY
 
 Breaking changes:
-  - Updated dependencies for PureScript 0.14 (#31)
+  - Added support for PureScript 0.14 and dropped support for all previous versions (#31)
 
 New features:
   - Added `onUpgrade` to allow users to listen to and respond to HTTP upgrades (#33)
@@ -23,6 +23,10 @@ New features:
 Other improvements:
   - Migrated CI to GitHub Actions, updated installation instructions to use Spago, and migrated from `jshint` to `eslint` (#30)
   - Added a changelog and pull request template (#34)
+  
+## [v5.0.2](https://github.com/purescript-node/purescript-node-http/releases/tag/v5.0.2) - 2019-07-24
+
+- Relaxed upper bounds on `node-buffer`
 
 ## [v5.0.1](https://github.com/purescript-node/purescript-node-http/releases/tag/v5.0.1) - 2019-05-28
 
