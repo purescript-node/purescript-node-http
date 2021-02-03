@@ -91,3 +91,7 @@ exports.setStatusMessage = function (res) {
     };
   };
 };
+
+exports.addressImpl = function (server) {
+  return server.address();
+};

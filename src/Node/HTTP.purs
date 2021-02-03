@@ -11,6 +11,8 @@ module Node.HTTP
   , ListenOptions
   , listenSocket
   , onUpgrade
+  , Address
+  , address
 
   , httpVersion
   , requestHeaders
@@ -27,12 +29,18 @@ module Node.HTTP
 
 import Prelude
 
-import Data.Maybe (Maybe)
-import Data.Nullable (Nullable, toNullable)
+import Data.Maybe (Maybe(..))
+import Data.Nullable (Nullable, toNullable, toMaybe)
+import Data.Either (Either(..), either)
+import Control.Monad.Except (runExcept)
+import Control.Alt ((<|>))
 import Effect (Effect)
+import Effect.Uncurried (EffectFn1, runEffectFn1)
+import Foreign (F, Foreign, readInt, readString)
 import Foreign.Object (Object)
 import Node.Buffer (Buffer)
 import Node.Net.Socket (Socket)
+import Foreign.Index (readProp)
 import Node.Stream (Writable, Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -108,3 +116,34 @@ foreign import setStatusMessage :: Response -> String -> Effect Unit
 -- | Coerce the response object into a writable stream.
 responseAsStream :: Response -> Writable ()
 responseAsStream = unsafeCoerce
+
+type Address
+  = { address :: String
+    , family :: String
+    , port :: Int
+    }
+
+foreign import addressImpl :: EffectFn1 Server (Nullable Foreign)
+
+-- | Attempts to return the bound address of a `Server`.
+-- |
+-- | If the `Server` is not listening, `Nothing` is returned.
+-- | If the `Server` is ICP or pipe or UNIX socket, it will return a `String`.
+-- | If the `Server` is TCP, it will return an `Address`.
+address :: Server -> Effect (Maybe (Either Address String))
+address server = do
+  x <- runEffectFn1 addressImpl server
+  pure (toMaybe x >>= read)
+  where
+  hush :: F ~> Maybe
+  hush f = either (\_ -> Nothing) Just (runExcept f)
+  read :: Foreign -> Maybe (Either Address String)
+  read value =
+    hush (map Left $ readAddress value)
+      <|> hush (map Right $ readString value)
+  readAddress :: Foreign -> F Address
+  readAddress value = ado
+    address <- readProp "address" value >>= readString
+    family <- readProp "family" value >>= readString
+    port <- readProp "port" value >>= readInt
+    in { address, family, port }
