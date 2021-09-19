@@ -10,6 +10,7 @@ module Node.HTTP
   , close
   , ListenOptions
   , listenSocket
+  , onConnect
   , onUpgrade
 
   , httpVersion
@@ -69,6 +70,9 @@ type ListenOptions =
 
 -- | Listen on a unix socket. The specified callback will be run when setup is complete.
 foreign import listenSocket :: Server -> String -> Effect Unit -> Effect Unit
+
+-- | Listen to `connect` events on the server
+foreign import onConnect :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
 
 -- | Listen to `upgrade` events on the server
 foreign import onUpgrade :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
