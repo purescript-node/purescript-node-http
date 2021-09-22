@@ -46,6 +46,16 @@ exports.listenSocket = function (server) {
   };
 };
 
+exports.onConnect = function (server) {
+  return function (cb) {
+    return function () {
+      server.on("connect", function (req, socket, buffer) {
+        return cb(req)(socket)(buffer)();
+      });
+    };
+  };
+};
+
 exports.onUpgrade = function (server) {
   return function (cb) {
     return function () {
