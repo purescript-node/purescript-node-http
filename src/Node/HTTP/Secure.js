@@ -1,8 +1,8 @@
 "use strict";
 
-var https = require("https");
+import https from "https";
 
-exports.createServerImpl = function (options) {
+export function createServerImpl(options) {
   return function (handleRequest) {
     return function () {
       return https.createServer(options, function (req, res) {
@@ -10,4 +10,4 @@ exports.createServerImpl = function (options) {
       });
     };
   };
-};
+}
