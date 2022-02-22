@@ -1,9 +1,9 @@
 "use strict";
 
-var http = require("http");
-var https = require("https");
+import http from "http";
+import https from "https";
 
-exports.requestImpl = function (opts) {
+export function requestImpl(opts) {
   return function (k) {
     return function () {
       var lib = opts.protocol === "https:" ? https : http;
@@ -12,9 +12,9 @@ exports.requestImpl = function (opts) {
       });
     };
   };
-};
+}
 
-exports.setTimeout = function (r) {
+export function setTimeout(r) {
   return function (ms) {
     return function (k) {
       return function () {
@@ -22,4 +22,4 @@ exports.setTimeout = function (r) {
       };
     };
   };
-};
+}
