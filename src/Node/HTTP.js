@@ -1,5 +1,3 @@
-"use strict";
-
 import http from "http";
 
 export function createServer(handleRequest) {

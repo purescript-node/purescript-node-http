@@ -1,5 +1,3 @@
-"use strict";
-
 import https from "https";
 
 export function createServerImpl(options) {
