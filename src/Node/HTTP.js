@@ -1,16 +1,14 @@
-"use strict";
+import http from "http";
 
-var http = require("http");
-
-exports.createServer = function (handleRequest) {
+export function createServer(handleRequest) {
   return function () {
     return http.createServer(function (req, res) {
       handleRequest(req)(res)();
     });
   };
-};
+}
 
-exports.listenImpl = function (server) {
+export function listenImpl(server) {
   return function (port) {
     return function (hostname) {
       return function (backlog) {
@@ -26,17 +24,17 @@ exports.listenImpl = function (server) {
       };
     };
   };
-};
+}
 
-exports.closeImpl = function (server) {
+export function closeImpl(server) {
   return function (done) {
     return function () {
       server.close(done);
     };
   };
-};
+}
 
-exports.listenSocket = function (server) {
+export function listenSocket(server) {
   return function (path) {
     return function (done) {
       return function () {
@@ -44,9 +42,9 @@ exports.listenSocket = function (server) {
       };
     };
   };
-};
+}
 
-exports.onConnect = function (server) {
+export function onConnect(server) {
   return function (cb) {
     return function () {
       server.on("connect", function (req, socket, buffer) {
@@ -54,9 +52,9 @@ exports.onConnect = function (server) {
       });
     };
   };
-};
+}
 
-exports.onUpgrade = function (server) {
+export function onUpgrade(server) {
   return function (cb) {
     return function () {
       server.on("upgrade", function (req, socket, buffer) {
@@ -64,9 +62,9 @@ exports.onUpgrade = function (server) {
       });
     };
   };
-};
+}
 
-exports.setHeader = function (res) {
+export function setHeader(res) {
   return function (key) {
     return function (value) {
       return function () {
@@ -74,9 +72,9 @@ exports.setHeader = function (res) {
       };
     };
   };
-};
+}
 
-exports.setHeaders = function (res) {
+export function setHeaders(res) {
   return function (key) {
     return function (values) {
       return function () {
@@ -84,20 +82,20 @@ exports.setHeaders = function (res) {
       };
     };
   };
-};
+}
 
-exports.setStatusCode = function (res) {
+export function setStatusCode(res) {
   return function (code) {
     return function () {
       res.statusCode = code;
     };
   };
-};
+}
 
-exports.setStatusMessage = function (res) {
+export function setStatusMessage(res) {
   return function (message) {
     return function () {
       res.statusMessage = message;
     };
   };
-};
+}
