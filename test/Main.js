@@ -1,3 +1,3 @@
 "use strict";
 
-export var stdout = process.stdout;
+export const stdout = process.stdout;
