@@ -12,22 +12,22 @@
     "url": "https://github.com/purescript-node/purescript-node-http.git"
   },
   "devDependencies": {
-    "purescript-console": "master"
+    "purescript-console": "^6.0.0"
   },
   "dependencies": {
-    "purescript-arraybuffer-types": "main",
-    "purescript-contravariant": "master",
-    "purescript-effect": "master",
-    "purescript-foreign": "master",
-    "purescript-foreign-object": "master",
-    "purescript-maybe": "master",
-    "purescript-node-buffer": "master",
-    "purescript-node-net": "master",
-    "purescript-node-streams": "master",
-    "purescript-node-url": "master",
-    "purescript-nullable": "main",
-    "purescript-options": "main",
-    "purescript-prelude": "master",
-    "purescript-unsafe-coerce": "master"
+    "purescript-arraybuffer-types": "^3.0.2",
+    "purescript-contravariant": "^6.0.0",
+    "purescript-effect": "^4.0.0",
+    "purescript-foreign": "^7.0.0",
+    "purescript-foreign-object": "^4.0.0",
+    "purescript-maybe": "^6.0.0",
+    "purescript-node-buffer": "^8.0.0",
+    "purescript-node-net": "^3.0.0",
+    "purescript-node-streams": "^6.0.0",
+    "purescript-node-url": "^6.0.0",
+    "purescript-nullable": "^6.0.0",
+    "purescript-options": "^7.0.0",
+    "purescript-prelude": "^6.0.0",
+    "purescript-unsafe-coerce": "^6.0.0"
   }
 }
