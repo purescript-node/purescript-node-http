@@ -43,7 +43,7 @@ respond req res = do
             , "</form>"
             ]
       setHeader res "Content-Type" "text/html"
-      _ <- writeString outputStream UTF8 html (pure unit)
+      _ <- writeString outputStream UTF8 html mempty
       end outputStream (pure unit)
     "POST" -> void $ pipe inputStream outputStream
     _ -> unsafeCrashWith "Unexpected HTTP method"
