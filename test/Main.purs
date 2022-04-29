@@ -44,7 +44,7 @@ respond req res = do
             ]
       setHeader res "Content-Type" "text/html"
       _ <- writeString outputStream UTF8 html mempty
-      end outputStream (pure unit)
+      end outputStream (const $ pure unit)
     "POST" -> void $ pipe inputStream outputStream
     _ -> unsafeCrashWith "Unexpected HTTP method"
 
@@ -139,13 +139,13 @@ simpleReq :: String -> Effect Unit
 simpleReq uri = do
   log ("GET " <> uri <> ":")
   req <- Client.requestFromURI uri logResponse
-  end (Client.requestAsStream req) (pure unit)
+  end (Client.requestAsStream req) (const $ pure unit)
 
 complexReq :: Options Client.RequestOptions -> Effect Unit
 complexReq opts = do
   log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> optsR.port <> optsR.path <> ":"
   req <- Client.request opts logResponse
-  end (Client.requestAsStream req) (pure unit)
+  end (Client.requestAsStream req) (const $ pure unit)
   where
     optsR = unsafeCoerce $ options opts
 
@@ -168,7 +168,7 @@ testUpgrade = do
         log "Listening on port 3000."
         sendRequests
   where
-  handleUpgrade req socket buffer = do
+  handleUpgrade req socket _ = do
     let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ requestHeaders req
     if upgradeHeader == "websocket" then
       void $ Socket.writeString
@@ -190,7 +190,7 @@ testUpgrade = do
         unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
       else
           pure unit
-    end (Client.requestAsStream reqSimple) (pure unit)
+    end (Client.requestAsStream reqSimple) (const $ pure unit)
     {-
       These two requests test that the upgrade callback is called and that it has
       access to the original request and can write to the underlying TCP socket
@@ -206,7 +206,7 @@ testUpgrade = do
          unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
        else
           pure unit
-    end (Client.requestAsStream reqUpgrade) (pure unit)
+    end (Client.requestAsStream reqUpgrade) (const $ pure unit)
 
     let wsHeaders = Client.RequestHeaders $ fromFoldable
                      [ Tuple "Connection" "upgrade"
@@ -220,5 +220,5 @@ testUpgrade = do
          unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
        else
          pure unit
-    end (Client.requestAsStream reqWSUpgrade) (pure unit)
+    end (Client.requestAsStream reqWSUpgrade) (const $ pure unit)
     pure unit
