@@ -12,16 +12,14 @@ Bugfixes:
 
 Other improvements:
 
-## [v7.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v7.0.0) - 2022-04-28
+## [v8.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v8.0.0) - 2022-04-29
 
 Breaking changes:
 - Update project and deps to PureScript v0.15.0 (#41 by @JordanMartinez, @sigma-andex)
 
-New features:
+## [v7.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v7.0.0) - 2022-04-28
 
-Bugfixes:
-
-Other improvements:
+Due to implementing a breaking change incorrectly, use v10.0.0 instead.
 
 ## [v6.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v6.0.0) - 2021-02-26
 
