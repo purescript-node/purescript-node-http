@@ -19,7 +19,7 @@ Breaking changes:
 
 ## [v7.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v7.0.0) - 2022-04-28
 
-Due to implementing a breaking change incorrectly, use v10.0.0 instead.
+Due to implementing a breaking change incorrectly, use v8.0.0 instead.
 
 ## [v6.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v6.0.0) - 2021-02-26
 
