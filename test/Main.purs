@@ -168,7 +168,7 @@ testUpgrade = do
         log "Listening on port 3000."
         sendRequests
   where
-  handleUpgrade req socket buffer = do
+  handleUpgrade req socket _ = do
     let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ requestHeaders req
     if upgradeHeader == "websocket" then
       void $ Socket.writeString
