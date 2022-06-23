@@ -1,0 +1,32 @@
+{ name = "node-http"
+, dependencies =
+  [ "aff"
+  , "arraybuffer-types"
+  , "contravariant"
+  , "control"
+  , "effect"
+  , "either"
+  , "exceptions"
+  , "foldable-traversable"
+  , "foreign"
+  , "foreign-object"
+  , "maybe"
+  , "newtype"
+  , "node-buffer"
+  , "node-net"
+  , "node-streams"
+  , "node-streams-aff"
+  , "node-url"
+  , "nullable"
+  , "options"
+  , "parallel"
+  , "partial"
+  , "prelude"
+  , "transformers"
+  , "unsafe-coerce"
+  ]
+, packages = ./packages.dhall
+, sources = [ "src/**/*.purs" ]
+, license = "MIT"
+, repository = "https://github.com/purescript-node/purescript-node-http"
+}

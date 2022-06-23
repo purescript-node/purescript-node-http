@@ -1,0 +1,61 @@
+module Test.MockCert where
+
+-- https://letsencrypt.org/docs/certificates-for-localhost/#making-and-trusting-your-own-certificates
+--
+-- Generate localhost.crt and localhost.key with 10 year expiration:
+--
+--     openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -days 3650 -subj '/CN=localhost' -extensions EXT -config <( printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+--
+
+cert :: String
+cert =
+  """-----BEGIN CERTIFICATE-----
+MIIDDzCCAfegAwIBAgIUUyn89RHpZC9irOiqJpcBqFRw2HgwDQYJKoZIhvcNAQEL
+BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTIyMTExODAyMTkyN1oXDTMyMTEx
+NTAyMTkyN1owFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF
+AAOCAQ8AMIIBCgKCAQEA0REkgizCB39n47Z3JXcW+GPPym4MXBb9HAHBJbH1+m/R
+0EkdunDyXr8cKveABgq3/kazWjXlGwNXUklKYCydcnmtNVBub4s1wXAsegRaPMmo
+RzisW7FWaqcLcBMAuwrub2NTVsX0HtO5qZiEKNx6AAbWFizFmMQ9K/9VprT1OLWy
+vtIOlR/YK+PKruNWeNpvhx91zmwb69lgrqUcwMHguLWgoz0JJgzh7cerexbT+eKC
+CuA9Ub8ctQD8SIl3eF7OzsvmQHSr+yABo3TJj7UZLh0B3j1uB8RLQvenVilc4YPz
+MK/R6Jf8RjRssGommbUqVaXRjJfYQ2As2tkzRS90cwIDAQABo1kwVzAUBgNVHREE
+DTALgglsb2NhbGhvc3QwCwYDVR0PBAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMB
+MB0GA1UdDgQWBBS5+ngK++/FbHQ4Uf8qMZDK6tSNlDANBgkqhkiG9w0BAQsFAAOC
+AQEAj5nTUka4P/hWkV+Wa9Rp/ijqv2ah2ukU1u73QyprG2/gHmFpYvNFJ7lG9O9r
+Wuvsz4g4moX9kgt/9GnpUbZBUE7zPau74P06lFcXhKAhiZcpsS+CZbMIsbfilWS0
+SBbs8OTLvexOqPP4pTvlc67zPkuB3tjOnHhPar8VSAiBp2s0l6UF2vWZ69Xj3ice
+DadE6thrH41GN/OSROKWL6dEueNTuQaU1Rx9Nxh8hvKiDJZ7l8oiHGYERoGwJJro
+tWBqRvX/C4TpnS+ckhOyqrHUXN66lVaact9GaBd7n6oCKzDY/GtENCLJnNKte5VI
+SATt1Hpnw3S/zwX9imqABqneAA==
+-----END CERTIFICATE-----"""
+
+key :: String
+key =
+  """-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDRESSCLMIHf2fj
+tncldxb4Y8/KbgxcFv0cAcElsfX6b9HQSR26cPJevxwq94AGCrf+RrNaNeUbA1dS
+SUpgLJ1yea01UG5vizXBcCx6BFo8yahHOKxbsVZqpwtwEwC7Cu5vY1NWxfQe07mp
+mIQo3HoABtYWLMWYxD0r/1WmtPU4tbK+0g6VH9gr48qu41Z42m+HH3XObBvr2WCu
+pRzAweC4taCjPQkmDOHtx6t7FtP54oIK4D1Rvxy1APxIiXd4Xs7Oy+ZAdKv7IAGj
+dMmPtRkuHQHePW4HxEtC96dWKVzhg/Mwr9Hol/xGNGywaiaZtSpVpdGMl9hDYCza
+2TNFL3RzAgMBAAECggEAJggqTgv6WAbTTVdaIVSitxjhKgAO+4mrDbc7/bF7/8zr
+rCpA4DO/w4CcjSxs+6xjgDw4UEbRoLJg5jUy9H/pPHPqEHLLRDtc0g2n6aJ1D+3X
+UO18XUnLYKd2qzKpxVzdtyGofXaRTDJT6gg2soA5KVwVAf+vCnVYc3KFkEgG/AOt
+jhvbxK+xA4CGjGPYxASO5K3IVJxb419hi8dizgtdJaotysvfspth5WOOoiBtVhuB
+6ORZt9DbN1AK9U3nV76NsjHeQWcMsDqt8w/KRkok4X9rkQ86pylZcDUyoqkf+aYB
+09FgDiw2iSj9k6kkR0y1o/sRsCN7PoRmJgEhrRWPcQKBgQDlflzyoaVUCIAZQAMo
+O3vJE/AEOnvB+eHmqGSi6nGHUxJavxm8dxJRqY2fzA/VeVvp19Nxs1Eh8pskHav4
+n+syRtGzkKIE0x9/KThhgzbqZl+NT5afHMhUHvmepMf8J+71giMC2v2yQC0aFVi7
+3frv3YNuBbC69FWkeYOjq/MJZwKBgQDpNs6nYmtR3bLBWKoLSOTLGV8Bhhhzt+tu
+nm6LVA464ib039m5BoWne890InxgaDNHfuL++n473JFXuwQMBBY3YLD3OPa5uW4a
+gt+oYUJKh+qGio395GnZ0W/Sf5GBpdPJ+pTMqGqlo/NWSPuwCdMd5T6RfvnEJzzv
+0/jZCAJ5FQKBgCE2yaMADBp+ZHPDFPHksgSnEwy5niGz1aL5ah8+CRJJzpU9pS7m
+mMsi2/Ftqjj+KHROnTaOekaMgzGV7ca89mA/aagwXZKPL7bKs3NBd1gzWs7r3uPG
+WaP7G6t/M8ZlzSrRG9oU8bSznxNwVXhTJzdB+vyYbDySkjaMs6WjhDgvAoGBAJj0
+mE8R7r9Pv1it9UDXey91oWkXcNwciW4QvQHmjDq0bsZ2No7ypyA0xNgvchGs5c0D
+fI+s7LQIMs8uWjYjTArgAND0bGVdJ8h9g4Ek4NyPDhNVtlEJyR7SDRwrDNzSTPiQ
+v50G7INc51D1JxXLK8rUutekRt4Ouhm1leWKKk0NAoGBALvc9wF7XcgGHZa1RRk9
+jH0vOkrn632Epzml1mXg0//2mw+7iQP3q5KtRruaIk6ifLSHznzqAkowhKFH+iCH
+wnecLhsl5FnL0JAipIxBHdX0iTttJf4UR/2wTo3RalGjEcMjMCUrSdkhBjRH4Gdc
+fBuXFtwhIuiggNR7UlHxbYpq
+-----END PRIVATE KEY-----"""

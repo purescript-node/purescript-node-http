@@ -8,6 +8,10 @@ Breaking changes:
 
 New features:
 
+- New module `HTTP2`. Solves #44. (#45 by @jamesdbrock)
+- Use __spec__ for tests. Upgraded `ci.yml`. Solves #35. (#45 by @jamesdbrock)
+- New function `HTTP.onRequest`. Solves #46. (#45 by @jamesdbrock)
+
 Bugfixes:
 
 Other improvements:
@@ -32,7 +36,7 @@ New features:
 Other improvements:
   - Migrated CI to GitHub Actions, updated installation instructions to use Spago, and migrated from `jshint` to `eslint` (#30)
   - Added a changelog and pull request template (#34)
-  
+
 ## [v5.0.2](https://github.com/purescript-node/purescript-node-http/releases/tag/v5.0.2) - 2019-07-24
 
 - Relaxed upper bounds on `node-buffer`

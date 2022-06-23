@@ -12,6 +12,7 @@ module Node.HTTP
   , listenSocket
   , onConnect
   , onUpgrade
+  , onRequest
 
   , httpVersion
   , requestHeaders
@@ -76,6 +77,9 @@ foreign import onConnect :: Server -> (Request -> Socket -> Buffer -> Effect Uni
 
 -- | Listen to `upgrade` events on the server
 foreign import onUpgrade :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
+
+-- | Listen to `request` events on the server
+foreign import onRequest :: Server -> (Request -> Response -> Effect Unit) -> Effect Unit
 
 -- | Get the request HTTP version
 httpVersion :: Request -> String
