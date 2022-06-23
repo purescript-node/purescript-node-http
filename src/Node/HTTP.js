@@ -64,6 +64,16 @@ export function onUpgrade(server) {
   };
 }
 
+export function onRequest(server) {
+  return function (cb) {
+    return function () {
+      server.on("request", function (req, res) {
+        return cb(req)(res)();
+      });
+    };
+  };
+}
+
 export function setHeader(res) {
   return function (key) {
     return function (value) {
