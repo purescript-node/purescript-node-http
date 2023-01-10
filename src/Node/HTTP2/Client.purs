@@ -97,7 +97,7 @@ foreign import destroy :: ClientHttp2Stream -> Effect Unit
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2sessionclosecallback
 closeSession :: ClientHttp2Session -> Effect Unit -> Effect Unit
-closeSession = unsafeCoerce Internal.closeSession
+closeSession http2session = Internal.closeSession (unsafeCoerce http2session)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-response
 -- |
@@ -124,7 +124,7 @@ foreign import onceHeaders :: ClientHttp2Stream -> (HeadersObject -> Flags -> Ef
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceStream :: ClientHttp2Session -> (ClientHttp2Stream -> HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onceStream = unsafeCoerce Internal.onceStream
+onceStream http2session callback = Internal.onceStream (unsafeCoerce http2session) (\http2stream -> callback (unsafeCoerce http2stream))
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-stream
 -- |
@@ -132,7 +132,7 @@ onceStream = unsafeCoerce Internal.onceStream
 -- |
 -- | Returns an effect for removing the event listener.
 onStream :: ClientHttp2Session -> (ClientHttp2Stream -> HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onStream = unsafeCoerce Internal.onStream
+onStream http2session callback = Internal.onStream (unsafeCoerce http2session) (\http2stream -> callback (unsafeCoerce http2stream))
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-error
 -- |
@@ -141,7 +141,7 @@ onStream = unsafeCoerce Internal.onStream
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceErrorSession :: ClientHttp2Session -> (Error -> Effect Unit) -> Effect (Effect Unit)
-onceErrorSession = unsafeCoerce Internal.onceEmitterError
+onceErrorSession http2session = Internal.onceEmitterError (unsafeCoerce http2session)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-error_1
 -- |
@@ -150,7 +150,7 @@ onceErrorSession = unsafeCoerce Internal.onceEmitterError
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceErrorStream :: ClientHttp2Stream -> (Error -> Effect Unit) -> Effect (Effect Unit)
-onceErrorStream = unsafeCoerce Internal.onceEmitterError
+onceErrorStream http2stream = Internal.onceEmitterError (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-push
 -- |
@@ -164,7 +164,7 @@ foreign import oncePush :: ClientHttp2Stream -> (HeadersObject -> Flags -> Effec
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceTrailers :: ClientHttp2Stream -> (HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onceTrailers = unsafeCoerce Internal.onceTrailers
+onceTrailers http2stream = Internal.onceTrailers (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-wanttrailers
 -- |
@@ -173,19 +173,19 @@ onceTrailers = unsafeCoerce Internal.onceTrailers
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceWantTrailers :: ClientHttp2Stream -> Effect Unit -> Effect (Effect Unit)
-onceWantTrailers = unsafeCoerce Internal.onceWantTrailers
+onceWantTrailers http2stream = Internal.onceWantTrailers (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2streamsendtrailersheaders
 -- |
 -- | > When sending a request or sending a response, the `options.waitForTrailers` option must be set in order to keep the `Http2Stream` open after the final `DATA` frame so that trailers can be sent.
 sendTrailers :: ClientHttp2Stream -> HeadersObject -> Effect Unit
-sendTrailers = unsafeCoerce Internal.sendTrailers
+sendTrailers http2stream = Internal.sendTrailers (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/stream.html#event-data
 -- |
 -- | Returns an effect for removing the event listener.
 onData :: ClientHttp2Stream -> (Buffer -> Effect Unit) -> Effect (Effect Unit)
-onData = unsafeCoerce Internal.onData
+onData http2stream = Internal.onData (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/net.html#event-end
 -- |
@@ -194,11 +194,11 @@ onData = unsafeCoerce Internal.onData
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceEnd :: ClientHttp2Stream -> Effect Unit -> Effect (Effect Unit)
-onceEnd = unsafeCoerce Internal.onceEnd
+onceEnd http2stream = Internal.onceEnd (unsafeCoerce http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2streamclosecode-callback
 closeStream :: ClientHttp2Stream -> Int -> Effect Unit -> Effect Unit
-closeStream stream code = Internal.closeStream (unsafeCoerce stream) code
+closeStream stream = Internal.closeStream (unsafeCoerce stream)
 
 -- | Coerce to a duplex stream.
 toDuplex :: ClientHttp2Stream -> Duplex
