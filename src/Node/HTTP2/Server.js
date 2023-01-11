@@ -16,10 +16,33 @@ export const listen = server => options => callback => () => {
   server.listen(options, () => callback());
 };
 
-export const onceSession = http2server => callback => () => {
-  const cb = session => callback(session)();
-  http2server.once("session", cb);
-  return () => http2server.removeEventListener("session", cb);
+// https://nodejs.org/docs/latest/api/http2.html#serverclosecallback
+export const closeServer = http2server => callback => () => {
+  http2server.close(() => callback());
+};
+
+// https://nodejs.org/docs/latest/api/net.html#event-close
+export const onceServerClose = server => callback => () => {
+  const cb = () => callback();
+  server.once("close", cb);
+  return () => {server.removeEventListener("close", cb);};
+};
+
+export const onEmitterError = eventemitter => callback => () => {
+  const cb = error => callback(error)();
+  eventemitter.on("error", cb);
+  return () => {eventemitter.removeListener("error", cb);};
+};
+
+export const session = http2stream => {
+  return http2stream.session;
+};
+
+// https://nodejs.org/docs/latest/api/http2.html#event-stream
+export const onStream = http2server => callback => () => {
+  const cb = (stream, headers, flags) => callback(stream)(headers)(flags)();
+  http2server.on("stream", cb);
+  return () => {http2server.removeListener("stream", cb);};
 };
 
 // https://nodejs.org/docs/latest/api/http2.html#http2streampushallowed

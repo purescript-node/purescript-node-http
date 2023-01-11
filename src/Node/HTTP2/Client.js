@@ -20,6 +20,13 @@ export const onceReady = socket => callback => () => {
   return () => socket.removeEventListener("ready", callback);
 };
 
+// https://nodejs.org/docs/latest/api/http2.html#event-stream
+export const onceStream = foreign => callback => () => {
+  const cb = (stream, headers, flags) => callback(stream)(headers)(flags)();
+  foreign.once("stream", cb);
+  return () => {foreign.removeListener("stream", cb);};
+};
+
 // https://nodejs.org/docs/latest/api/http2.html#clienthttp2sessionrequestheaders-options
 export const request = clienthttp2session => headers => options => () => {
   return clienthttp2session.request(headers, options);

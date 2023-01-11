@@ -18,11 +18,6 @@ export const closeSession = http2session => callback => () => {
   }
 };
 
-// https://nodejs.org/docs/latest/api/http2.html#serverclosecallback
-export const closeServer = http2server => callback => () => {
-  http2server.close(() => callback());
-};
-
 // https://nodejs.org/docs/latest/api/http2.html#event-close_1
 export const onceClose = http2stream => callback => () => {
   const cb = () => callback(http2stream.rstCode)();
@@ -30,50 +25,20 @@ export const onceClose = http2stream => callback => () => {
   return () => {http2stream.removeEventListener("close", cb);};
 };
 
-// https://nodejs.org/docs/latest/api/http2.html#event-stream
-export const onceStream = foreign => callback => () => {
-  const cb = (stream, headers, flags) => callback(stream)(headers)(flags)();
-  foreign.once("stream", cb);
-  return () => {foreign.removeListener("stream", cb);};
-};
-
-// https://nodejs.org/docs/latest/api/http2.html#event-stream
-export const onStream = foreign => callback => () => {
-  const cb = (stream, headers, flags) => callback(stream)(headers)(flags)();
-  foreign.on("stream", cb);
-  return () => {foreign.removeListener("stream", cb);};
-};
-
-// https://nodejs.org/docs/latest/api/events.html#nodeeventtargetoncetype-listener-options
-export const onceError = eventtarget => callback => () => {
-  const cb = error => callback(error)();
-  eventtarget.once("error", cb);
-  return () => {eventtarget.removeEventListener("error", cb);};
-};
-
-// https://nodejs.org/docs/latest/api/net.html#event-close
-export const onceServerClose = server => callback => () => {
-  const cb = () => callback();
-  server.once("close", cb);
-  return () => {server.removeEventListener("close", cb);};
-};
-
 // https://nodejs.org/docs/latest/api/events.html#emitteronceeventname-listener
-export const onceEmitterError = eventemitter => callback => () => {
+const onceEmitterError = eventemitter => callback => () => {
   const cb = error => callback(error)();
   eventemitter.once("error", cb);
   return () => {eventemitter.removeListener("error", cb);};
 };
 
-export const onEmitterError = eventemitter => callback => () => {
-  const cb = error => callback(error)();
-  eventemitter.on("error", cb);
-  return () => {eventemitter.removeListener("error", cb);};
-};
+// During PR review it was requested that there be no `unsafeCoerce`, so
+// we unsafely coerce in JavaScript instead.
+export const onceStreamEmitterError = onceEmitterError;
 
-export const throwAllErrors = eventtarget => () => {
-  eventtarget.addEventListener("error", error => {throw error;});
-};
+// During PR review it was requested that there be no `unsafeCoerce`, so
+// we unsafely coerce in JavaScript instead.
+export const onceSessionEmitterError = onceEmitterError;
 
 export const onceWantTrailers = http2stream => callback => () => {
   const cb = () => callback();
@@ -102,10 +67,6 @@ export const onceEnd = netsocket => callback => () => {
   const cb = () => callback();
   netsocket.once("end", cb);
   return () => {netsocket.removeListener("end", cb);};
-};
-
-export const session = http2stream => {
-  return http2stream.session;
 };
 
 // https://nodejs.org/docs/latest/api/http2.html#http2streamclosecode-callback

@@ -41,7 +41,6 @@ module Node.HTTP2.Client
   , request
   , onceErrorSession
   , onceResponse
-  , onStream
   , onceStream
   , onceHeaders
   , closeSession
@@ -64,6 +63,7 @@ import Effect (Effect)
 import Effect.Exception (Error)
 import Node.Buffer (Buffer)
 import Node.HTTP2 (Flags, HeadersObject, OptionsObject)
+import Node.HTTP2.Internal (Http2Session, Http2Stream)
 import Node.HTTP2.Internal as Internal
 import Node.Net.Socket (Socket)
 import Node.Stream (Duplex)
@@ -74,6 +74,9 @@ import Unsafe.Coerce (unsafeCoerce)
 -- |
 -- | See [__Class: ClientHttp2Session__](https://nodejs.org/docs/latest/api/http2.html#class-clienthttp2session)
 foreign import data ClientHttp2Session :: Type
+
+upcastClientHttp2Session :: ClientHttp2Session -> Http2Session
+upcastClientHttp2Session = unsafeCoerce
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2connectauthority-options-listener
 foreign import connect :: URL -> OptionsObject -> (ClientHttp2Session -> Socket -> Effect Unit) -> Effect ClientHttp2Session
@@ -89,6 +92,9 @@ foreign import onceReady :: Socket -> (Effect Unit) -> Effect (Effect Unit)
 -- | See [__Class: ClientHttp2Stream__](https://nodejs.org/docs/latest/api/http2.html#class-clienthttp2stream)
 foreign import data ClientHttp2Stream :: Type
 
+upcastClientHttp2Stream :: ClientHttp2Stream -> Http2Stream
+upcastClientHttp2Stream = unsafeCoerce
+
 -- |https://nodejs.org/docs/latest/api/http2.html#clienthttp2sessionrequestheaders-options
 foreign import request :: ClientHttp2Session -> HeadersObject -> OptionsObject -> Effect ClientHttp2Stream
 
@@ -97,11 +103,11 @@ foreign import destroy :: ClientHttp2Stream -> Effect Unit
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2sessionclosecallback
 closeSession :: ClientHttp2Session -> Effect Unit -> Effect Unit
-closeSession http2session = Internal.closeSession (unsafeCoerce http2session)
+closeSession http2session = Internal.closeSession (upcastClientHttp2Session http2session)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-response
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
@@ -109,7 +115,7 @@ foreign import onceResponse :: ClientHttp2Stream -> (HeadersObject -> Flags -> E
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-headers
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
@@ -119,38 +125,31 @@ foreign import onceHeaders :: ClientHttp2Stream -> (HeadersObject -> Flags -> Ef
 -- |
 -- | https://nodejs.org/docs/latest/api/http2.html#push-streams-on-the-client
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
--- | is raised.
-onceStream :: ClientHttp2Session -> (ClientHttp2Stream -> HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onceStream http2session callback = Internal.onceStream (unsafeCoerce http2session) (\http2stream -> callback (unsafeCoerce http2stream))
-
+-- |
 -- | https://nodejs.org/docs/latest/api/http2.html#event-stream
--- |
--- | https://nodejs.org/docs/latest/api/http2.html#push-streams-on-the-client
--- |
--- | Returns an effect for removing the event listener.
-onStream :: ClientHttp2Session -> (ClientHttp2Stream -> HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onStream http2session callback = Internal.onStream (unsafeCoerce http2session) (\http2stream -> callback (unsafeCoerce http2stream))
+-- | is raised.
+foreign import onceStream :: ClientHttp2Session -> (ClientHttp2Stream -> HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-error
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceErrorSession :: ClientHttp2Session -> (Error -> Effect Unit) -> Effect (Effect Unit)
-onceErrorSession http2session = Internal.onceEmitterError (unsafeCoerce http2session)
+onceErrorSession http2session = Internal.onceSessionEmitterError (upcastClientHttp2Session http2session)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-error_1
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceErrorStream :: ClientHttp2Stream -> (Error -> Effect Unit) -> Effect (Effect Unit)
-onceErrorStream http2stream = Internal.onceEmitterError (unsafeCoerce http2stream)
+onceErrorStream http2stream = Internal.onceStreamEmitterError (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-push
 -- |
@@ -159,46 +158,46 @@ foreign import oncePush :: ClientHttp2Stream -> (HeadersObject -> Flags -> Effec
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-trailers
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceTrailers :: ClientHttp2Stream -> (HeadersObject -> Flags -> Effect Unit) -> Effect (Effect Unit)
-onceTrailers http2stream = Internal.onceTrailers (unsafeCoerce http2stream)
+onceTrailers http2stream = Internal.onceTrailers (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#event-wanttrailers
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceWantTrailers :: ClientHttp2Stream -> Effect Unit -> Effect (Effect Unit)
-onceWantTrailers http2stream = Internal.onceWantTrailers (unsafeCoerce http2stream)
+onceWantTrailers http2stream = Internal.onceWantTrailers (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2streamsendtrailersheaders
 -- |
 -- | > When sending a request or sending a response, the `options.waitForTrailers` option must be set in order to keep the `Http2Stream` open after the final `DATA` frame so that trailers can be sent.
 sendTrailers :: ClientHttp2Stream -> HeadersObject -> Effect Unit
-sendTrailers http2stream = Internal.sendTrailers (unsafeCoerce http2stream)
+sendTrailers http2stream = Internal.sendTrailers (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/stream.html#event-data
 -- |
 -- | Returns an effect for removing the event listener.
 onData :: ClientHttp2Stream -> (Buffer -> Effect Unit) -> Effect (Effect Unit)
-onData http2stream = Internal.onData (unsafeCoerce http2stream)
+onData http2stream = Internal.onData (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/net.html#event-end
 -- |
--- | Listen for one event, then remove the event listener.
+-- | Listen for one event, call the callback, then remove the event listener.
 -- |
 -- | Returns an effect for removing the event listener before the event
 -- | is raised.
 onceEnd :: ClientHttp2Stream -> Effect Unit -> Effect (Effect Unit)
-onceEnd http2stream = Internal.onceEnd (unsafeCoerce http2stream)
+onceEnd http2stream = Internal.onceEnd (upcastClientHttp2Stream http2stream)
 
 -- | https://nodejs.org/docs/latest/api/http2.html#http2streamclosecode-callback
 closeStream :: ClientHttp2Stream -> Int -> Effect Unit -> Effect Unit
-closeStream stream = Internal.closeStream (unsafeCoerce stream)
+closeStream stream = Internal.closeStream (upcastClientHttp2Stream stream)
 
 -- | Coerce to a duplex stream.
 toDuplex :: ClientHttp2Stream -> Duplex

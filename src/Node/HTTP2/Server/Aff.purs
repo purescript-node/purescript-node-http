@@ -112,7 +112,7 @@ listen server options handler = makeAff \complete -> do
     Server.closeServer server $ pure unit
     complete (Left err)
 
-  onceCloseCancel <- Server.onceCloseServer server do
+  onceCloseCancel <- Server.onceServerClose server do
     onStreamCancel
     onErrorCancel
     complete (Right unit)
@@ -182,7 +182,7 @@ listenSecure server options handler = makeAff \complete -> do
     Server.closeServerSecure server $ pure unit
     complete (Left err)
 
-  onceCloseCancel <- Server.onceCloseServerSecure server do
+  onceCloseCancel <- Server.onceServerSecureClose server do
     onStreamCancel
     onErrorCancel
     complete (Right unit)

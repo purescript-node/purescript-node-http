@@ -25,7 +25,7 @@ basic_serverSecure complete = do
   server <- HTTP2.Server.createSecureServer
     (toOptions { key: key, cert: cert })
 
-  void $ HTTP2.Server.onceStreamSecure server \stream _ _ -> do
+  void $ HTTP2.Server.onStreamSecure server \stream _ _ -> do
     HTTP2.Server.respond stream
       ( toHeaders
           { "content-type": "text/html; charset=utf-8"
