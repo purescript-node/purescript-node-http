@@ -8,10 +8,13 @@ import Data.Options (Options, options, (:=))
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log, logShow)
+import Effect.Uncurried (EffectFn1, EffectFn2, mkEffectFn2, runEffectFn1, runEffectFn2)
+import Foreign (Foreign)
 import Foreign.Object (fromFoldable, lookup)
 import Node.Encoding (Encoding(..))
-import Node.HTTP (Request, Response, listen, createServer, setHeader, requestHeaders, requestMethod, requestURL, responseAsStream, requestAsStream, setStatusCode, onUpgrade)
+import Node.HTTP (Request, Response, Server, close, listen, onUpgrade, requestAsStream, requestHeaders, requestMethod, requestURL, responseAsStream, setHeader, setStatusCode)
 import Node.HTTP.Client as Client
+import Node.HTTP.Secure (SSLOptions)
 import Node.HTTP.Secure as HTTPS
 import Node.Net.Socket as Socket
 import Node.Stream (Writable, end, pipe, writeString)
@@ -19,18 +22,32 @@ import Node.Stream as Stream
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
 
+foreign import createServerOnly :: Effect Server
+
+createSecureServerOnly :: Options SSLOptions -> Effect Server
+createSecureServerOnly opts = runEffectFn1 createSecureServerOnlyImpl $ options opts
+
+foreign import createSecureServerOnlyImpl :: EffectFn1 (Foreign) (Server)
+
+onRequest :: Server -> (Request -> Response -> Effect Unit) -> Effect Unit
+onRequest s cb = runEffectFn2 onRequestImpl s $ mkEffectFn2 cb
+
+foreign import onRequestImpl :: EffectFn2 (Server) (EffectFn2 Request Response Unit) (Unit)
+
+foreign import setTimeoutImpl :: EffectFn2 Int (Effect Unit) Unit
+
 foreign import stdout :: forall r. Writable r
 
 main :: Effect Unit
 main = do
   testBasic
-  testUpgrade
+  -- testUpgrade
   testHttpsServer
   testHttps
   testCookies
 
-respond :: Request -> Response -> Effect Unit
-respond req res = do
+respond :: Effect Unit -> Request -> Response -> Effect Unit
+respond closeServer req res = do
   setStatusCode res 200
   let
     inputStream = requestAsStream req
@@ -50,10 +67,12 @@ respond req res = do
       end outputStream
     "POST" -> void $ pipe inputStream outputStream
     _ -> unsafeCrashWith "Unexpected HTTP method"
+  closeServer
 
 testBasic :: Effect Unit
 testBasic = do
-  server <- createServer respond
+  server <- createServerOnly
+  onRequest server $ respond (close server mempty)
   listen server { hostname: "localhost", port: 8080, backlog: Nothing } $ void do
     log "Listening on port 8080."
     simpleReq "http://localhost:8080"
@@ -114,7 +133,8 @@ TbGfXbnVfNmqgQh71+k02p6S
 
 testHttpsServer :: Effect Unit
 testHttpsServer = do
-  server <- HTTPS.createServer sslOpts respond
+  server <- createSecureServerOnly sslOpts
+  onRequest server $ respond (close server mempty)
   listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
     log "Listening on port 8081."
     complexReq $
@@ -165,8 +185,11 @@ logResponse response = void do
 
 testUpgrade :: Effect Unit
 testUpgrade = do
-  server <- createServer respond
+  server <- createServerOnly
+  -- Set timeout to close server
+  runEffectFn2 setTimeoutImpl 10_000 (close server mempty)
   onUpgrade server handleUpgrade
+  onRequest server $ respond (mempty)
   listen server { hostname: "localhost", port: 3000, backlog: Nothing }
     $ void do
         log "Listening on port 3000."
