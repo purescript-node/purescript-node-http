@@ -33,7 +33,7 @@ import Data.Nullable (Nullable, toNullable)
 import Effect (Effect)
 import Foreign.Object (Object)
 import Node.Buffer (Buffer)
-import Node.Net.Socket (Socket)
+import Node.Net.Types (Socket, TCP)
 import Node.Stream (Writable, Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -72,10 +72,10 @@ type ListenOptions =
 foreign import listenSocket :: Server -> String -> Effect Unit -> Effect Unit
 
 -- | Listen to `connect` events on the server
-foreign import onConnect :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
+foreign import onConnect :: Server -> (Request -> Socket TCP -> Buffer -> Effect Unit) -> Effect Unit
 
 -- | Listen to `upgrade` events on the server
-foreign import onUpgrade :: Server -> (Request -> Socket -> Buffer -> Effect Unit) -> Effect Unit
+foreign import onUpgrade :: Server -> (Request -> Socket TCP -> Buffer -> Effect Unit) -> Effect Unit
 
 -- | Get the request HTTP version
 httpVersion :: Request -> String

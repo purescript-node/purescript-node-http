@@ -15,6 +15,7 @@ import Node.HTTP.Client as Client
 import Node.HTTP.Secure as HTTPS
 import Node.Net.Socket as Socket
 import Node.Stream (Writable, end, pipe, writeString)
+import Node.Stream as Stream
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -31,20 +32,22 @@ main = do
 respond :: Request -> Response -> Effect Unit
 respond req res = do
   setStatusCode res 200
-  let inputStream  = requestAsStream req
-      outputStream = responseAsStream res
+  let
+    inputStream = requestAsStream req
+    outputStream = responseAsStream res
   log (requestMethod req <> " " <> requestURL req)
   case requestMethod req of
     "GET" -> do
-      let html = foldMap (_ <> "\n")
-            [ "<form method='POST' action='/'>"
-            , "  <input name='text' type='text'>"
-            , "  <input type='submit'>"
-            , "</form>"
-            ]
+      let
+        html = foldMap (_ <> "\n")
+          [ "<form method='POST' action='/'>"
+          , "  <input name='text' type='text'>"
+          , "  <input type='submit'>"
+          , "</form>"
+          ]
       setHeader res "Content-Type" "text/html"
-      _ <- writeString outputStream UTF8 html mempty
-      end outputStream (const $ pure unit)
+      _ <- writeString outputStream UTF8 html
+      end outputStream
     "POST" -> void $ pipe inputStream outputStream
     _ -> unsafeCrashWith "Unexpected HTTP method"
 
@@ -115,15 +118,16 @@ testHttpsServer = do
   listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
     log "Listening on port 8081."
     complexReq $
-      Client.protocol := "https:" <>
-      Client.method := "GET" <>
-      Client.hostname := "localhost" <>
-      Client.port := 8081 <>
-      Client.path := "/" <>
-      Client.rejectUnauthorized := false
+      Client.protocol := "https:"
+        <> Client.method := "GET"
+        <> Client.hostname := "localhost"
+        <> Client.port := 8081
+        <> Client.path := "/"
+        <>
+          Client.rejectUnauthorized := false
   where
-    sslOpts =
-      HTTPS.key := HTTPS.keyString mockKey <>
+  sslOpts =
+    HTTPS.key := HTTPS.keyString mockKey <>
       HTTPS.cert := HTTPS.certString mockCert
 
 testHttps :: Effect Unit
@@ -139,15 +143,15 @@ simpleReq :: String -> Effect Unit
 simpleReq uri = do
   log ("GET " <> uri <> ":")
   req <- Client.requestFromURI uri logResponse
-  end (Client.requestAsStream req) (const $ pure unit)
+  end (Client.requestAsStream req)
 
 complexReq :: Options Client.RequestOptions -> Effect Unit
 complexReq opts = do
   log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> optsR.port <> optsR.path <> ":"
   req <- Client.request opts logResponse
-  end (Client.requestAsStream req) (const $ pure unit)
+  end (Client.requestAsStream req)
   where
-    optsR = unsafeCoerce $ options opts
+  optsR = unsafeCoerce $ options opts
 
 logResponse :: Client.Response -> Effect Unit
 logResponse response = void do
@@ -170,18 +174,15 @@ testUpgrade = do
   where
   handleUpgrade req socket _ = do
     let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ requestHeaders req
+    let sockStream = Socket.toDuplex socket
     if upgradeHeader == "websocket" then
-      void $ Socket.writeString
-        socket
+      void $ Stream.writeString sockStream
+        UTF8
         "HTTP/1.1 101 Switching Protocols\r\nContent-Length: 0\r\n\r\n"
-        UTF8
-        $ pure unit
     else
-      void $ Socket.writeString
-        socket
-        "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
+      void $ Stream.writeString sockStream
         UTF8
-        $ pure unit
+        "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
 
   sendRequests = do
     -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
@@ -189,36 +190,38 @@ testUpgrade = do
       if (Client.statusCode response /= 200) then
         unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
       else
-          pure unit
-    end (Client.requestAsStream reqSimple) (const $ pure unit)
+        pure unit
+    end (Client.requestAsStream reqSimple)
     {-
       These two requests test that the upgrade callback is called and that it has
       access to the original request and can write to the underlying TCP socket
     -}
-    let headers = Client.RequestHeaders $ fromFoldable
-                   [ Tuple "Connection" "upgrade"
-                   , Tuple "Upgrade" "something"
-                   ]
+    let
+      headers = Client.RequestHeaders $ fromFoldable
+        [ Tuple "Connection" "upgrade"
+        , Tuple "Upgrade" "something"
+        ]
     reqUpgrade <- Client.request
-     (Client.port := 3000 <> Client.headers := headers)
-     \response -> do
-       if (Client.statusCode response /= 426) then
-         unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
-       else
+      (Client.port := 3000 <> Client.headers := headers)
+      \response -> do
+        if (Client.statusCode response /= 426) then
+          unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
+        else
           pure unit
-    end (Client.requestAsStream reqUpgrade) (const $ pure unit)
+    end (Client.requestAsStream reqUpgrade)
 
-    let wsHeaders = Client.RequestHeaders $ fromFoldable
-                     [ Tuple "Connection" "upgrade"
-                     , Tuple "Upgrade" "websocket"
-                     ]
+    let
+      wsHeaders = Client.RequestHeaders $ fromFoldable
+        [ Tuple "Connection" "upgrade"
+        , Tuple "Upgrade" "websocket"
+        ]
 
     reqWSUpgrade <- Client.request
-     (Client.port := 3000 <> Client.headers := wsHeaders)
-     \response -> do
-       if (Client.statusCode response /= 101) then
-         unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
-       else
-         pure unit
-    end (Client.requestAsStream reqWSUpgrade) (const $ pure unit)
+      (Client.port := 3000 <> Client.headers := wsHeaders)
+      \response -> do
+        if (Client.statusCode response /= 101) then
+          unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
+        else
+          pure unit
+    end (Client.requestAsStream reqWSUpgrade)
     pure unit

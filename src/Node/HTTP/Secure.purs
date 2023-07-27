@@ -90,16 +90,17 @@ import Unsafe.Coerce (unsafeCoerce)
 
 -- | Create an HTTPS server, given the SSL options and a function to be executed
 -- | when a request is received.
-foreign import createServerImpl ::
-  Foreign ->
-  (Request -> Response -> Effect Unit) ->
-  Effect Server
+foreign import createServerImpl
+  :: Foreign
+  -> (Request -> Response -> Effect Unit)
+  -> Effect Server
 
 -- | Create an HTTPS server, given the SSL options and a function to be executed
 -- | when a request is received.
-createServer :: Options SSLOptions ->
-                (Request -> Response -> Effect Unit) ->
-                Effect Server
+createServer
+  :: Options SSLOptions
+  -> (Request -> Response -> Effect Unit)
+  -> Effect Server
 createServer = createServerImpl <<< options
 
 -- | The type of HTTPS server options
@@ -120,16 +121,22 @@ rejectUnauthorized = opt "rejectUnauthorized"
 -- | The npnProtocols option can be a String, a Buffer, a Uint8Array, or an
 -- | array of any of those types.
 data NPNProtocols
+
 npnProtocolsString :: String -> NPNProtocols
 npnProtocolsString = unsafeCoerce
+
 npnProtocolsBuffer :: Buffer -> NPNProtocols
 npnProtocolsBuffer = unsafeCoerce
+
 npnProtocolsUint8Array :: Uint8Array -> NPNProtocols
 npnProtocolsUint8Array = unsafeCoerce
+
 npnProtocolsStringArray :: Array String -> NPNProtocols
 npnProtocolsStringArray = unsafeCoerce
+
 npnProtocolsBufferArray :: Array Buffer -> NPNProtocols
 npnProtocolsBufferArray = unsafeCoerce
+
 npnProtocolsUint8ArrayArray :: Array Uint8Array -> NPNProtocols
 npnProtocolsUint8ArrayArray = unsafeCoerce
 
@@ -140,16 +147,22 @@ npnProtocols = opt "NPNProtocols"
 -- | The alpnProtocols option can be a String, a Buffer, a Uint8Array, or an
 -- | array of any of those types.
 data ALPNProtocols
+
 alpnProtocolsString :: String -> ALPNProtocols
 alpnProtocolsString = unsafeCoerce
+
 alpnProtocolsBuffer :: Buffer -> ALPNProtocols
 alpnProtocolsBuffer = unsafeCoerce
+
 alpnProtocolsUint8Array :: Uint8Array -> ALPNProtocols
 alpnProtocolsUint8Array = unsafeCoerce
+
 alpnProtocolsStringArray :: Array String -> ALPNProtocols
 alpnProtocolsStringArray = unsafeCoerce
+
 alpnProtocolsBufferArray :: Array Buffer -> ALPNProtocols
 alpnProtocolsBufferArray = unsafeCoerce
+
 alpnProtocolsUint8ArrayArray :: Array Uint8Array -> ALPNProtocols
 alpnProtocolsUint8ArrayArray = unsafeCoerce
 
@@ -167,8 +180,10 @@ ticketKeys = opt "ticketKeys"
 
 -- | The PFX option can take either a String or a Buffer
 data PFX
+
 pfxString :: String -> PFX
 pfxString = unsafeCoerce
+
 pfxBuffer :: Buffer -> PFX
 pfxBuffer = unsafeCoerce
 
@@ -179,12 +194,16 @@ pfx = opt "pfx"
 -- | The key option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data Key
+
 keyString :: String -> Key
 keyString = unsafeCoerce
+
 keyBuffer :: Buffer -> Key
 keyBuffer = unsafeCoerce
+
 keyStringArray :: Array String -> Key
 keyStringArray = unsafeCoerce
+
 keyBufferArray :: Array Buffer -> Key
 keyBufferArray = unsafeCoerce
 
@@ -199,12 +218,16 @@ passphrase = opt "passphrase"
 -- | The cert option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data Cert
+
 certString :: String -> Cert
 certString = unsafeCoerce
+
 certBuffer :: Buffer -> Cert
 certBuffer = unsafeCoerce
+
 certStringArray :: Array String -> Cert
 certStringArray = unsafeCoerce
+
 certBufferArray :: Array Buffer -> Cert
 certBufferArray = unsafeCoerce
 
@@ -215,12 +238,16 @@ cert = opt "cert"
 -- | The CA option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data CA
+
 caString :: String -> CA
 caString = unsafeCoerce
+
 caBuffer :: Buffer -> CA
 caBuffer = unsafeCoerce
+
 caStringArray :: Array String -> CA
 caStringArray = unsafeCoerce
+
 caBufferArray :: Array Buffer -> CA
 caBufferArray = unsafeCoerce
 
@@ -231,12 +258,16 @@ ca = opt "ca"
 -- | The CRL option can be a String, a Buffer, an array of strings, or an array
 -- | of buffers.
 data CRL
+
 crlString :: String -> CRL
 crlString = unsafeCoerce
+
 crlBuffer :: Buffer -> CRL
 crlBuffer = unsafeCoerce
+
 crlStringArray :: Array String -> CRL
 crlStringArray = unsafeCoerce
+
 crlBufferArray :: Array Buffer -> CRL
 crlBufferArray = unsafeCoerce
 
@@ -258,8 +289,10 @@ ecdhCurve = opt "ecdhCurve"
 
 -- | The DHParam option can take either a String or a Buffer
 data DHParam
+
 dhparamString :: String -> DHParam
 dhparamString = unsafeCoerce
+
 dhparamBuffer :: Buffer -> DHParam
 dhparamBuffer = unsafeCoerce
 
