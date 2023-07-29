@@ -3,6 +3,7 @@ module Node.HTTP.IncomingMessage
   , closeH
   , complete
   , headers
+  , cookies
   , headersDistinct
   , httpVersion
   , method
@@ -25,6 +26,7 @@ import Effect (Effect)
 import Effect.Uncurried (EffectFn1, runEffectFn1)
 import Foreign (Foreign)
 import Foreign.Object (Object)
+import Foreign.Object as Object
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0)
 import Node.HTTP.Types (IMClientRequest, IMServer, IncomingMessage)
@@ -42,7 +44,13 @@ complete im = runEffectFn1 completeImpl im
 
 foreign import completeImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Boolean)
 
-foreign import headers :: forall messageType. IncomingMessage messageType -> Object Foreign
+headers :: forall messageType. IncomingMessage messageType -> Object String
+headers = Object.delete "set-cookie" <<< headersImpl
+
+cookies :: forall messageType. IncomingMessage messageType -> Maybe (Array String)
+cookies = Object.lookup "set-cookie" <<< headersImpl
+
+foreign import headersImpl :: forall messageType a. IncomingMessage messageType -> Object a
 
 foreign import headersDistinct :: forall messageType. IncomingMessage messageType -> Object (NonEmptyArray String)
 
