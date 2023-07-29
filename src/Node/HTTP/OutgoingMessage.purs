@@ -1,5 +1,5 @@
 module Node.HTTP.OutgoingMessage
-  ( toDuplex
+  ( toWriteable
   , drainH
   , finishH
   , prefinishH
@@ -34,8 +34,8 @@ import Node.HTTP.Types (OutgoingMessage)
 import Node.Stream (Writable)
 import Unsafe.Coerce (unsafeCoerce)
 
-toDuplex :: OutgoingMessage -> Writable ()
-toDuplex = unsafeCoerce
+toWriteable :: OutgoingMessage -> Writable ()
+toWriteable = unsafeCoerce
 
 drainH :: EventHandle0 OutgoingMessage
 drainH = EventHandle "drain" identity
