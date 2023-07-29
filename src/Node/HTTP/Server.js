@@ -2,7 +2,7 @@ export const bytesParsed = (e) => e.bytesParsed;
 export const rawPacket = (e) => e.rawPacket;
 
 export const closeAllConnectionsImpl = (hs) => hs.closeAllConnections();
-export const closeAllIdleConnectionsImpl = (hs) => hs.closeAllIdleConnections();
+export const closeIdleConnectionsImpl = (hs) => hs.closeIdleConnections();
 export const headersTimeoutImpl = (hs) => hs.headersTimeout;
 export const setHeadersTimeoutImpl = (tm, hs) => {
   hs.headersTimeout = tm;

@@ -14,7 +14,7 @@ module Node.HTTP.Server
   , requestH
   , upgradeH
   , closeAllConnections
-  , closeAllIdleConnections
+  , closeIdleConnections
   , headersTimeout
   , setHeadersTimeout
   , maxHeadersCount
@@ -92,10 +92,10 @@ closeAllConnections hs = runEffectFn1 closeAllConnectionsImpl hs
 
 foreign import closeAllConnectionsImpl :: EffectFn1 (HttpServer) (Unit)
 
-closeAllIdleConnections :: HttpServer -> Effect Unit
-closeAllIdleConnections hs = runEffectFn1 closeAllIdleConnectionsImpl hs
+closeIdleConnections :: HttpServer -> Effect Unit
+closeIdleConnections hs = runEffectFn1 closeIdleConnectionsImpl hs
 
-foreign import closeAllIdleConnectionsImpl :: EffectFn1 (HttpServer) (Unit)
+foreign import closeIdleConnectionsImpl :: EffectFn1 (HttpServer) (Unit)
 
 headersTimeout :: HttpServer -> Effect Int
 headersTimeout hs = runEffectFn1 headersTimeoutImpl hs
