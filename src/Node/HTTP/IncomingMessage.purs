@@ -11,64 +11,60 @@ import Foreign (Foreign)
 import Foreign.Object (Object)
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0)
-import Node.HTTP.Types (IncomingMessage)
+import Node.HTTP.Types (IMClientRequest, IMServer, IncomingMessage)
 import Node.Stream (Readable, Duplex)
 import Unsafe.Coerce (unsafeCoerce)
 
-toReadable :: IncomingMessage -> Readable ()
+toReadable :: forall messageType. IncomingMessage messageType -> Readable ()
 toReadable = unsafeCoerce
 
-closeH :: EventHandle0 IncomingMessage
+closeH :: forall messageType. EventHandle0 (IncomingMessage messageType)
 closeH = EventHandle "close" identity
 
-complete :: IncomingMessage -> Effect Boolean
+complete :: forall messageType. IncomingMessage messageType -> Effect Boolean
 complete im = runEffectFn1 completeImpl im
 
-foreign import completeImpl :: EffectFn1 (IncomingMessage) (Boolean)
+foreign import completeImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Boolean)
 
-headers :: IncomingMessage -> Effect (Object Foreign)
+headers :: forall messageType. IncomingMessage messageType -> Effect (Object Foreign)
 headers im = runEffectFn1 headersImpl im
 
-foreign import headersImpl :: EffectFn1 (IncomingMessage) ((Object Foreign))
+foreign import headersImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) ((Object Foreign))
 
-headersDistinct :: IncomingMessage -> Effect (Object (NonEmptyArray String))
+headersDistinct :: forall messageType. IncomingMessage messageType -> Effect (Object (NonEmptyArray String))
 headersDistinct im = runEffectFn1 headersDistinctImpl im
 
-foreign import headersDistinctImpl :: EffectFn1 (IncomingMessage) ((Object (NonEmptyArray String)))
+foreign import headersDistinctImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) ((Object (NonEmptyArray String)))
 
-foreign import httpVersion :: IncomingMessage -> String
+foreign import httpVersion :: forall messageType. IncomingMessage messageType -> String
 
--- if obtained from `http.Server`
-foreign import method :: IncomingMessage -> String
+foreign import method :: IncomingMessage IMServer -> String
 
-foreign import rawHeaders :: IncomingMessage -> Array String
+foreign import rawHeaders :: forall messageType. IncomingMessage messageType -> Array String
 
-rawTrailers :: IncomingMessage -> Maybe (Array String)
+rawTrailers :: forall messageType. IncomingMessage messageType -> Maybe (Array String)
 rawTrailers im = toMaybe $ rawTrailersImpl im
 
-foreign import rawTrailersImpl :: IncomingMessage -> (Nullable (Array String))
+foreign import rawTrailersImpl :: forall messageType. IncomingMessage messageType -> (Nullable (Array String))
 
-socket :: IncomingMessage -> Effect (Maybe Duplex)
+socket :: forall messageType. IncomingMessage messageType -> Effect (Maybe Duplex)
 socket im = map toMaybe $ runEffectFn1 socketImpl im
 
-foreign import socketImpl :: EffectFn1 (IncomingMessage) (Nullable Duplex)
+foreign import socketImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Nullable Duplex)
 
--- if obtained from `http.ClientRequest`
-foreign import statusCode :: IncomingMessage -> Int
+foreign import statusCode :: IncomingMessage IMClientRequest -> Int
 
--- if obtained from `http.ClientRequest`
-foreign import statusMessage :: IncomingMessage -> String
+foreign import statusMessage :: IncomingMessage IMClientRequest -> String
 
-trailers :: IncomingMessage -> Effect (Maybe (Object Foreign))
+trailers :: forall messageType. IncomingMessage messageType -> Effect (Maybe (Object Foreign))
 trailers im = map toMaybe $ runEffectFn1 trailersImpl im
 
-foreign import trailersImpl :: EffectFn1 (IncomingMessage) (Nullable (Object Foreign))
+foreign import trailersImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Nullable (Object Foreign))
 
-trailersDistinct :: IncomingMessage -> Effect (Maybe (Object (NonEmptyArray String)))
+trailersDistinct :: forall messageType. IncomingMessage messageType -> Effect (Maybe (Object (NonEmptyArray String)))
 trailersDistinct im = map toMaybe $ runEffectFn1 trailersDistinctImpl im
 
-foreign import trailersDistinctImpl :: EffectFn1 (IncomingMessage) (Nullable (Object (NonEmptyArray String)))
+foreign import trailersDistinctImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Nullable (Object (NonEmptyArray String)))
 
--- if obtained from `http.Server`
-foreign import url :: IncomingMessage -> String
+foreign import url :: IncomingMessage IMServer -> String
 

@@ -2,4 +2,9 @@ module Node.HTTP.Types where
 
 foreign import data OutgoingMessage :: Type
 
-foreign import data IncomingMessage :: Type
+data IncomingMessageType
+
+foreign import data IMClientRequest :: IncomingMessageType
+foreign import data IMServer :: IncomingMessageType
+
+foreign import data IncomingMessage :: IncomingMessageType -> Type
