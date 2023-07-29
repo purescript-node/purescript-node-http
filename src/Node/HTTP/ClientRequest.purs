@@ -1,36 +1,35 @@
 module Node.HTTP.ClientRequest
   ( toOutgoingMessage
-  , toReadable
-  , closeH
-  , complete
-  , headers
-  , headersDistinct
-  , httpVersion
+  , connectH
+  , continueH
+  , finishH
+  , informationH
+  , responseH
+  , socketH
+  , timeoutH
+  , upgradeH
+  , path
   , method
-  , rawHeaders
-  , rawTrailers
-  , socket
-  , statusCode
-  , statusMessage
-  , trailers
-  , trailersDistinct
-  , url
+  , host
+  , protocol
+  , reusedSocket
+  , setNoDelay
+  , setSocketKeepAlive
+  , setTimeout
   ) where
 
 import Prelude
 
-import Data.Array.NonEmpty (NonEmptyArray)
-import Data.Maybe (Maybe)
-import Data.Nullable (Nullable, toMaybe)
+import Data.Time.Duration (Milliseconds)
 import Effect (Effect)
-import Effect.Uncurried (EffectFn1, runEffectFn1)
+import Effect.Uncurried (EffectFn2, EffectFn3, mkEffectFn1, mkEffectFn3, runEffectFn2, runEffectFn3)
 import Foreign (Foreign)
 import Foreign.Object (Object)
+import Node.Buffer (Buffer)
 import Node.EventEmitter (EventHandle(..))
-import Node.EventEmitter.UtilTypes (EventHandle0)
-import Node.HTTP.IncomingMessage as IM
-import Node.HTTP.Types (IMClientRequest, IMServer, IncomingMessage)
-import Node.Stream (Readable, Duplex)
+import Node.EventEmitter.UtilTypes (EventHandle0, EventHandle3, EventHandle1)
+import Node.HTTP.Types (ClientRequest, IMClientRequest, IncomingMessage, OutgoingMessage)
+import Node.Stream (Duplex)
 import Unsafe.Coerce (unsafeCoerce)
 
 toOutgoingMessage :: ClientRequest -> OutgoingMessage
@@ -45,18 +44,19 @@ continueH = EventHandle "continue" identity
 finishH :: EventHandle0 ClientRequest
 finishH = EventHandle "finish" identity
 
-informationH :: EventHandle1 ClientRequest {
-    httpVersion :: String
-    httpVersionMajor :: Int
-    httpVersionMinor :: Int
-    statusCode :: Int
-    statusMessage :: String
-    headers :: Object Foreign
-    rawHeaders :: Array String
-}
+informationH
+  :: EventHandle1 ClientRequest
+       { httpVersion :: String
+       , httpVersionMajor :: Int
+       , httpVersionMinor :: Int
+       , statusCode :: Int
+       , statusMessage :: String
+       , headers :: Object Foreign
+       , rawHeaders :: Array String
+       }
 informationH = EventHandle "information" mkEffectFn1
 
-responseH :: EventHandle1 ClientRequest (IncomingMessage ClientRequest)
+responseH :: EventHandle1 ClientRequest (IncomingMessage IMClientRequest)
 responseH = EventHandle "response" mkEffectFn1
 
 socketH :: EventHandle1 ClientRequest Duplex
