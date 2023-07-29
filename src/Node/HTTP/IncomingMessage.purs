@@ -42,15 +42,9 @@ complete im = runEffectFn1 completeImpl im
 
 foreign import completeImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Boolean)
 
-headers :: forall messageType. IncomingMessage messageType -> Effect (Object Foreign)
-headers im = runEffectFn1 headersImpl im
+foreign import headers :: forall messageType. IncomingMessage messageType -> Object Foreign
 
-foreign import headersImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) ((Object Foreign))
-
-headersDistinct :: forall messageType. IncomingMessage messageType -> Effect (Object (NonEmptyArray String))
-headersDistinct im = runEffectFn1 headersDistinctImpl im
-
-foreign import headersDistinctImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) ((Object (NonEmptyArray String)))
+foreign import headersDistinct :: forall messageType. IncomingMessage messageType -> Object (NonEmptyArray String)
 
 foreign import httpVersion :: forall messageType. IncomingMessage messageType -> String
 

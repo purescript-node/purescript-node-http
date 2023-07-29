@@ -1,6 +1,6 @@
 export const completeImpl = (im) => im.complete;
-export const headersImpl = (im) => im.headers;
-export const headersDistinctImpl = (im) => im.headersDistinct;
+export const headers = (im) => im.headers;
+export const headersDistinct = (im) => im.headersDistinct;
 export const httpVersion = (im) => im.httpVersion;
 export const method = (im) => im.method;
 export const rawHeaders = (im) => im.rawHeaders;
