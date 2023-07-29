@@ -38,6 +38,7 @@ foreign import headersDistinctImpl :: EffectFn1 (IncomingMessage) ((Object (NonE
 
 foreign import httpVersion :: IncomingMessage -> String
 
+-- if obtained from `http.Server`
 foreign import method :: IncomingMessage -> String
 
 foreign import rawHeaders :: IncomingMessage -> Array String
@@ -52,8 +53,10 @@ socket im = map toMaybe $ runEffectFn1 socketImpl im
 
 foreign import socketImpl :: EffectFn1 (IncomingMessage) (Nullable Duplex)
 
+-- if obtained from `http.ClientRequest`
 foreign import statusCode :: IncomingMessage -> Int
 
+-- if obtained from `http.ClientRequest`
 foreign import statusMessage :: IncomingMessage -> String
 
 trailers :: IncomingMessage -> Effect (Maybe (Object Foreign))
@@ -66,5 +69,6 @@ trailersDistinct im = map toMaybe $ runEffectFn1 trailersDistinctImpl im
 
 foreign import trailersDistinctImpl :: EffectFn1 (IncomingMessage) (Nullable (Object (NonEmptyArray String)))
 
+-- if obtained from `http.Server`
 foreign import url :: IncomingMessage -> String
 
