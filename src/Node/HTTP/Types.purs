@@ -14,3 +14,5 @@ foreign import data ClientRequest :: Type
 foreign import data ServerResponse :: Type
 
 foreign import data HttpServer :: Type
+
+foreign import data HttpSecureServer :: Type

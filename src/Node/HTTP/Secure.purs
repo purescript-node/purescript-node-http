@@ -1,0 +1,175 @@
+module Node.HTTP.Secure where
+
+import Prelude
+
+import Data.Time.Duration (Milliseconds(..))
+import Effect (Effect)
+import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
+import Node.Buffer (Buffer)
+import Node.HTTP (CreateServerOptions, RequestOptions)
+import Node.HTTP.Types (ClientRequest, HttpSecureServer)
+import Node.TLS.Types as TLS
+import Prim.Row as Row
+
+foreign import createSecureServer :: Effect (HttpSecureServer)
+
+createSecureServer'
+  :: forall r trash
+   . Row.Union r trash (TLS.TlsCreateServerOptions TLS.Server (TLS.CreateSecureContextOptions CreateServerOptions))
+  => { | r }
+  -> Effect HttpSecureServer
+createSecureServer' opts = runEffectFn1 createSecureServerOptsImpl opts
+
+foreign import createSecureServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpSecureServer)
+
+request :: String -> Effect ClientRequest
+request url = runEffectFn1 requestImpl url
+
+foreign import requestImpl :: EffectFn1 (String) (ClientRequest)
+
+-- | - `ca` <string> | <string[]> | <Buffer> | <Buffer[]> Optionally override the trusted CA certificates. Default is to trust the well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced when CAs are explicitly specified using this option. The value can be a string or Buffer, or an Array of strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be chainable to a CA trusted by the server for the connection to be authenticated. When using certificates that are not chainable to a well-known CA, the certificate's CA must be explicitly specified as a trusted or the connection will fail to authenticate. If the peer uses a certificate that doesn't match or chain to one of the default CAs, use the ca option to provide a CA certificate that the peer's certificate can match or chain to. For self-signed certificates, the certificate is its own CA, and must be provided. For PEM encoded certificates, supported types are "TRUSTED CERTIFICATE", "X509 CERTIFICATE", and "CERTIFICATE". See also tls.rootCertificates.
+-- | - `cert` <string> | <string[]> | <Buffer> | <Buffer[]> Cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private key, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see ca). When providing multiple cert chains, they do not have to be in the same order as their private keys in key. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail.
+-- | - `ciphers` <string> Cipher suite specification, replacing the default. For more information, see Modifying the default TLS cipher suite. Permitted ciphers can be obtained via tls.getCiphers(). Cipher names must be uppercased in order for OpenSSL to accept them.
+-- | - `clientCertEngine` <string> Name of an OpenSSL engine which can provide the client certificate.
+-- | - `crl` <string> | <string[]> | <Buffer> | <Buffer[]> PEM formatted CRLs (Certificate Revocation Lists).
+-- | - `dhparam` <string> | <Buffer> 'auto' or custom Diffie-Hellman parameters, required for non-ECDHE perfect forward secrecy. If omitted or invalid, the parameters are silently discarded and DHE ciphers will not be available. ECDHE-based perfect forward secrecy will still be available.
+-- | - `ecdhCurve` <string> A string describing a named curve or a colon separated list of curve NIDs or names, for example P-521:P-384:P-256, to use for ECDH key agreement. Set to auto to select the curve automatically. Use crypto.getCurves() to obtain a list of available curve names. On recent releases, openssl ecparam -list_curves will also display the name and description of each available elliptic curve. Default: tls.DEFAULT_ECDH_CURVE.
+-- | - `honorCipherOrder` <boolean> Attempt to use the server's cipher suite preferences instead of the client's. When true, causes SSL_OP_CIPHER_SERVER_PREFERENCE to be set in secureOptions, see OpenSSL Options for more information.
+-- | - `key` <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]> Private keys in PEM format. PEM allows the option of private keys being encrypted. Encrypted keys will be decrypted with options.passphrase. Multiple keys using different algorithms can be provided either as an array of unencrypted key strings or buffers, or an array of objects in the form {pem: <string|buffer>[, passphrase: <string>]}. The object form can only occur in an array. object.passphrase is optional. Encrypted keys will be decrypted with object.passphrase if provided, or options.passphrase if it is not.
+-- | - `passphrase` <string> Shared passphrase used for a single private key and/or a PFX.
+-- | - `pfx` <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]> PFX or PKCS12 encoded private key and certificate chain. pfx is an alternative to providing key and cert individually. PFX is usually encrypted, if it is, passphrase will be used to decrypt it. Multiple PFX can be provided either as an array of unencrypted PFX buffers, or an array of objects in the form {buf: <string|buffer>[, passphrase: <string>]}. The object form can only occur in an array. object.passphrase is optional. Encrypted PFX will be decrypted with object.passphrase if provided, or options.passphrase if it is not.
+-- | - `rejectUnauthorized` <boolean> If not false the server will reject any connection which is not authorized with the list of supplied CAs. This option only has an effect if requestCert is true. Default: true.
+-- | - `secureOptions` <number> Optionally affect the OpenSSL protocol behavior, which is not usually necessary. This should be used carefully if at all! Value is a numeric bitmask of the SSL_OP_* options from OpenSSL Options.
+-- | - `secureProtocol` <string> Legacy mechanism to select the TLS protocol version to use, it does not support independent control of the minimum and maximum version, and does not support limiting the protocol to TLSv1.3. Use minVersion and maxVersion instead. The possible values are listed as SSL_METHODS, use the function names as strings. For example, use 'TLSv1_1_method' to force TLS version 1.1, or 'TLS_method' to allow any TLS protocol version up to TLSv1.3. It is not recommended to use TLS versions less than 1.2, but it may be required for interoperability. Default: none, see minVersion.
+-- | - `sessionIdContext` <string> Opaque identifier used by servers to ensure session state is not shared between applications. Unused by clients.
+-- | - `servername`: <string> Server name for the SNI (Server Name Indication) TLS extension. It is the name of the host being connected to, and must be a host name, and not an IP address. It can be used by a multi-homed server to choose the correct certificate to present to the client, see the SNICallback option to tls.createServer().
+-- | - `highWaterMark`: <number> Consistent with the readable stream highWaterMark parameter. Default: 16 * 1024.
+type SecureRequestOptions =
+  ( ca :: Array Buffer
+  , cert :: Array Buffer
+  , ciphers :: String
+  , clientCertEngine :: String
+  , crl :: Array Buffer
+  , dhparam :: Buffer
+  , ecdhCurve :: String
+  , honorCipherOrder :: Boolean
+  , key :: Array Buffer
+  , passphrase :: String
+  , pfx :: Array Buffer
+  , rejectUnauthorized :: Boolean
+  , secureOptions :: Number
+  , secureProtocol :: String
+  , sessionIdContext :: String
+  , servername :: String
+  , highWaterMark :: Number
+  | RequestOptions ()
+  )
+
+request'
+  :: forall r trash
+   . Row.Union r trash SecureRequestOptions
+  => String
+  -> { | r }
+  -> Effect ClientRequest
+request' url opts = runEffectFn2 requestOptsImpl url opts
+
+foreign import requestOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+
+get :: String -> Effect ClientRequest
+get url = runEffectFn1 getImpl url
+
+foreign import getImpl :: EffectFn1 (String) (ClientRequest)
+
+get'
+  :: forall r trash
+   . Row.Union r trash SecureRequestOptions
+  => Row.Lacks "method" r
+  => String
+  -> { | r }
+  -> Effect ClientRequest
+get' url opts = runEffectFn2 getOptsImpl url opts
+
+foreign import getOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+
+closeAllConnections :: HttpSecureServer -> Effect Unit
+closeAllConnections hs = runEffectFn1 closeAllConnectionsImpl hs
+
+foreign import closeAllConnectionsImpl :: EffectFn1 (HttpSecureServer) (Unit)
+
+closeIdleConnections :: HttpSecureServer -> Effect Unit
+closeIdleConnections hs = runEffectFn1 closeIdleConnectionsImpl hs
+
+foreign import closeIdleConnectionsImpl :: EffectFn1 (HttpSecureServer) (Unit)
+
+headersTimeout :: HttpSecureServer -> Effect Int
+headersTimeout hs = runEffectFn1 headersTimeoutImpl hs
+
+foreign import headersTimeoutImpl :: EffectFn1 (HttpSecureServer) (Int)
+
+setHeadersTimeout :: Int -> HttpSecureServer -> Effect Unit
+setHeadersTimeout tm hs = runEffectFn2 setHeadersTimeoutImpl tm hs
+
+foreign import setHeadersTimeoutImpl :: EffectFn2 (Int) (HttpSecureServer) (Unit)
+
+maxHeadersCount :: HttpSecureServer -> Effect Int
+maxHeadersCount hs = runEffectFn1 maxHeadersCountImpl hs
+
+foreign import maxHeadersCountImpl :: EffectFn1 (HttpSecureServer) (Int)
+
+setMaxHeadersCount :: Int -> HttpSecureServer -> Effect Unit
+setMaxHeadersCount c hs = runEffectFn2 setMaxHeadersCountImpl c hs
+
+foreign import setMaxHeadersCountImpl :: EffectFn2 (Int) (HttpSecureServer) (Unit)
+
+setUnlimitedHeadersCount :: HttpSecureServer -> Effect Unit
+setUnlimitedHeadersCount = setMaxHeadersCount 0
+
+requestTimeout :: HttpSecureServer -> Effect Milliseconds
+requestTimeout hs = runEffectFn1 requestTimeoutImpl hs
+
+foreign import requestTimeoutImpl :: EffectFn1 (HttpSecureServer) (Milliseconds)
+
+setRequestTimeout :: Milliseconds -> HttpSecureServer -> Effect Unit
+setRequestTimeout tm hs = runEffectFn2 setRequestTimeoutImpl tm hs
+
+foreign import setRequestTimeoutImpl :: EffectFn2 (Milliseconds) (HttpSecureServer) (Unit)
+
+maxRequestsPerSocket :: HttpSecureServer -> Effect Int
+maxRequestsPerSocket hs = runEffectFn1 maxRequestsPerSocketImpl hs
+
+foreign import maxRequestsPerSocketImpl :: EffectFn1 (HttpSecureServer) (Int)
+
+setMaxRequestsPerSocket :: Int -> HttpSecureServer -> Effect Unit
+setMaxRequestsPerSocket c hs = runEffectFn2 setMaxRequestsPerSocketImpl c hs
+
+foreign import setMaxRequestsPerSocketImpl :: EffectFn2 (Int) (HttpSecureServer) (Unit)
+
+setUnlimitedRequestsPerSocket :: HttpSecureServer -> Effect Unit
+setUnlimitedRequestsPerSocket hs = setMaxRequestsPerSocket 0 hs
+
+timeout :: HttpSecureServer -> Effect Milliseconds
+timeout hs = runEffectFn1 timeoutImpl hs
+
+foreign import timeoutImpl :: EffectFn1 (HttpSecureServer) (Milliseconds)
+
+setTimeout :: Milliseconds -> HttpSecureServer -> Effect Unit
+setTimeout ms hs = runEffectFn2 setTimeoutImpl ms hs
+
+foreign import setTimeoutImpl :: EffectFn2 (Milliseconds) (HttpSecureServer) (Unit)
+
+clearTimeout :: HttpSecureServer -> Effect Unit
+clearTimeout hs = setTimeout (Milliseconds 0.0) hs
+
+keepAliveTimeout :: HttpSecureServer -> Effect Milliseconds
+keepAliveTimeout hs = runEffectFn1 keepAliveTimeoutImpl hs
+
+foreign import keepAliveTimeoutImpl :: EffectFn1 (HttpSecureServer) (Milliseconds)
+
+setKeepAliveTimeout :: Milliseconds -> HttpSecureServer -> Effect Unit
+setKeepAliveTimeout ms hs = runEffectFn2 setKeepAliveTimeoutImpl ms hs
+
+foreign import setKeepAliveTimeoutImpl :: EffectFn2 (Milliseconds) (HttpSecureServer) (Unit)
+
+clearKeepAliveTimeout :: HttpSecureServer -> Effect Unit
+clearKeepAliveTimeout hs = setKeepAliveTimeout (Milliseconds 0.0) hs
+
