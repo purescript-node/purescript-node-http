@@ -1,4 +1,20 @@
-module Node.HTTP.IncomingMessage where
+module Node.HTTP.IncomingMessage
+  ( toReadable
+  , closeH
+  , complete
+  , headers
+  , headersDistinct
+  , httpVersion
+  , method
+  , rawHeaders
+  , rawTrailers
+  , socket
+  , statusCode
+  , statusMessage
+  , trailers
+  , trailersDistinct
+  , url
+  ) where
 
 import Prelude
 
