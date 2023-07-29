@@ -8,3 +8,7 @@ foreign import data IMClientRequest :: IncomingMessageType
 foreign import data IMServer :: IncomingMessageType
 
 foreign import data IncomingMessage :: IncomingMessageType -> Type
+
+foreign import data ClientRequest :: Type
+
+foreign import data ServerResponse :: Type
