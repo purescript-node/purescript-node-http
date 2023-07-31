@@ -1,4 +1,4 @@
-module Node.HTTP.Secure where
+module Node.HTTPS where
 
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
