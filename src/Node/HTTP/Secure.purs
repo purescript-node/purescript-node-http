@@ -1,26 +1,23 @@
 module Node.HTTP.Secure where
 
-import Prelude
-
-import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Node.Buffer (Buffer)
 import Node.HTTP (CreateServerOptions, RequestOptions)
-import Node.HTTP.Types (ClientRequest, HttpSecureServer)
+import Node.HTTP.Types (ClientRequest, HttpServer', Encrypted)
 import Node.TLS.Types as TLS
 import Prim.Row as Row
 
-foreign import createSecureServer :: Effect (HttpSecureServer)
+foreign import createSecureServer :: Effect (HttpServer' Encrypted)
 
 createSecureServer'
   :: forall r trash
    . Row.Union r trash (TLS.TlsCreateServerOptions TLS.Server (TLS.CreateSecureContextOptions CreateServerOptions))
   => { | r }
-  -> Effect HttpSecureServer
+  -> Effect (HttpServer' Encrypted)
 createSecureServer' opts = runEffectFn1 createSecureServerOptsImpl opts
 
-foreign import createSecureServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpSecureServer)
+foreign import createSecureServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpServer' Encrypted)
 
 request :: String -> Effect ClientRequest
 request url = runEffectFn1 requestImpl url

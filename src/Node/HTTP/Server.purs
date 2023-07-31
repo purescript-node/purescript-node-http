@@ -1,5 +1,6 @@
 module Node.HTTP.Server
-  ( toNetServer
+  ( toTlsServer
+  , toNetServer
   , checkContinueH
   , checkExpectationH
   , ClientErrorException
@@ -44,18 +45,22 @@ import Foreign (Foreign)
 import Node.Buffer (Buffer)
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0, EventHandle2, EventHandle3, EventHandle1)
-import Node.HTTP.Types (HttpServer, IMServer, IncomingMessage, ServerResponse)
+import Node.HTTP.Types (Encrypted, HttpServer', IMServer, IncomingMessage, ServerResponse)
 import Node.Net.Types (Server, TCP)
 import Node.Stream (Duplex)
+import Node.TLS.Types (TlsServer)
 import Unsafe.Coerce (unsafeCoerce)
 
-toNetServer :: HttpServer -> Server TCP
+toTlsServer :: HttpServer' Encrypted -> TlsServer
+toTlsServer = unsafeCoerce
+
+toNetServer :: forall transmissionType. (HttpServer' transmissionType) -> Server TCP
 toNetServer = unsafeCoerce
 
-checkContinueH :: EventHandle2 HttpServer (IncomingMessage IMServer) ServerResponse
+checkContinueH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) (IncomingMessage IMServer) ServerResponse
 checkContinueH = EventHandle "checkContinue" \cb -> mkEffectFn2 \a b -> cb a b
 
-checkExpectationH :: EventHandle2 HttpServer (IncomingMessage IMServer) ServerResponse
+checkExpectationH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) (IncomingMessage IMServer) ServerResponse
 checkExpectationH = EventHandle "checkExpectation" \cb -> mkEffectFn2 \a b -> cb a b
 
 newtype ClientErrorException = ClientErrorException Error
@@ -66,105 +71,105 @@ toError (ClientErrorException e) = e
 foreign import bytesParsed :: ClientErrorException -> Int
 foreign import rawPacket :: ClientErrorException -> Foreign
 
-clientErrorH :: EventHandle2 HttpServer ClientErrorException Duplex
+clientErrorH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) ClientErrorException Duplex
 clientErrorH = EventHandle "clientError" \cb -> mkEffectFn2 \a b -> cb a b
 
-closeH :: EventHandle0 HttpServer
+closeH :: forall transmissionType. EventHandle0 (HttpServer' transmissionType)
 closeH = EventHandle "close" identity
 
-connectH :: EventHandle3 HttpServer (IncomingMessage IMServer) Duplex Buffer
+connectH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) Duplex Buffer
 connectH = EventHandle "connect" \cb -> mkEffectFn3 \a b c -> cb a b c
 
-connectionH :: EventHandle1 HttpServer Duplex
+connectionH :: forall transmissionType. EventHandle1 (HttpServer' transmissionType) Duplex
 connectionH = EventHandle "connection" mkEffectFn1
 
-dropRequestH :: EventHandle2 HttpServer (IncomingMessage IMServer) Duplex
+dropRequestH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) (IncomingMessage IMServer) Duplex
 dropRequestH = EventHandle "dropRequest" \cb -> mkEffectFn2 \a b -> cb a b
 
-requestH :: EventHandle2 HttpServer (IncomingMessage IMServer) ServerResponse
+requestH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) (IncomingMessage IMServer) ServerResponse
 requestH = EventHandle "request" \cb -> mkEffectFn2 \a b -> cb a b
 
-upgradeH :: EventHandle3 HttpServer (IncomingMessage IMServer) Duplex Buffer
+upgradeH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) Duplex Buffer
 upgradeH = EventHandle "upgrade" \cb -> mkEffectFn3 \a b c -> cb a b c
 
-closeAllConnections :: HttpServer -> Effect Unit
+closeAllConnections :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 closeAllConnections hs = runEffectFn1 closeAllConnectionsImpl hs
 
-foreign import closeAllConnectionsImpl :: EffectFn1 (HttpServer) (Unit)
+foreign import closeAllConnectionsImpl :: forall transmissionType. EffectFn1 (HttpServer' transmissionType) (Unit)
 
-closeIdleConnections :: HttpServer -> Effect Unit
+closeIdleConnections :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 closeIdleConnections hs = runEffectFn1 closeIdleConnectionsImpl hs
 
-foreign import closeIdleConnectionsImpl :: EffectFn1 (HttpServer) (Unit)
+foreign import closeIdleConnectionsImpl :: forall transmissionType. EffectFn1 (HttpServer' transmissionType) (Unit)
 
-headersTimeout :: HttpServer -> Effect Int
+headersTimeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Int
 headersTimeout hs = runEffectFn1 headersTimeoutImpl hs
 
-foreign import headersTimeoutImpl :: EffectFn1 (HttpServer) (Int)
+foreign import headersTimeoutImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Int)
 
-setHeadersTimeout :: Int -> HttpServer -> Effect Unit
+setHeadersTimeout :: forall transmissionType. Int -> (HttpServer' transmissionType) -> Effect Unit
 setHeadersTimeout tm hs = runEffectFn2 setHeadersTimeoutImpl tm hs
 
-foreign import setHeadersTimeoutImpl :: EffectFn2 (Int) (HttpServer) (Unit)
+foreign import setHeadersTimeoutImpl :: forall transmissionType. EffectFn2 (Int) ((HttpServer' transmissionType)) (Unit)
 
-maxHeadersCount :: HttpServer -> Effect Int
+maxHeadersCount :: forall transmissionType. (HttpServer' transmissionType) -> Effect Int
 maxHeadersCount hs = runEffectFn1 maxHeadersCountImpl hs
 
-foreign import maxHeadersCountImpl :: EffectFn1 (HttpServer) (Int)
+foreign import maxHeadersCountImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Int)
 
-setMaxHeadersCount :: Int -> HttpServer -> Effect Unit
+setMaxHeadersCount :: forall transmissionType. Int -> (HttpServer' transmissionType) -> Effect Unit
 setMaxHeadersCount c hs = runEffectFn2 setMaxHeadersCountImpl c hs
 
-foreign import setMaxHeadersCountImpl :: EffectFn2 (Int) (HttpServer) (Unit)
+foreign import setMaxHeadersCountImpl :: forall transmissionType. EffectFn2 (Int) ((HttpServer' transmissionType)) (Unit)
 
-setUnlimitedHeadersCount :: HttpServer -> Effect Unit
+setUnlimitedHeadersCount :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 setUnlimitedHeadersCount = setMaxHeadersCount 0
 
-requestTimeout :: HttpServer -> Effect Milliseconds
+requestTimeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Milliseconds
 requestTimeout hs = runEffectFn1 requestTimeoutImpl hs
 
-foreign import requestTimeoutImpl :: EffectFn1 (HttpServer) (Milliseconds)
+foreign import requestTimeoutImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Milliseconds)
 
-setRequestTimeout :: Milliseconds -> HttpServer -> Effect Unit
+setRequestTimeout :: forall transmissionType. Milliseconds -> (HttpServer' transmissionType) -> Effect Unit
 setRequestTimeout tm hs = runEffectFn2 setRequestTimeoutImpl tm hs
 
-foreign import setRequestTimeoutImpl :: EffectFn2 (Milliseconds) (HttpServer) (Unit)
+foreign import setRequestTimeoutImpl :: forall transmissionType. EffectFn2 (Milliseconds) ((HttpServer' transmissionType)) (Unit)
 
-maxRequestsPerSocket :: HttpServer -> Effect Int
+maxRequestsPerSocket :: forall transmissionType. (HttpServer' transmissionType) -> Effect Int
 maxRequestsPerSocket hs = runEffectFn1 maxRequestsPerSocketImpl hs
 
-foreign import maxRequestsPerSocketImpl :: EffectFn1 (HttpServer) (Int)
+foreign import maxRequestsPerSocketImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Int)
 
-setMaxRequestsPerSocket :: Int -> HttpServer -> Effect Unit
+setMaxRequestsPerSocket :: forall transmissionType. Int -> (HttpServer' transmissionType) -> Effect Unit
 setMaxRequestsPerSocket c hs = runEffectFn2 setMaxRequestsPerSocketImpl c hs
 
-foreign import setMaxRequestsPerSocketImpl :: EffectFn2 (Int) (HttpServer) (Unit)
+foreign import setMaxRequestsPerSocketImpl :: forall transmissionType. EffectFn2 (Int) ((HttpServer' transmissionType)) (Unit)
 
-setUnlimitedRequestsPerSocket :: HttpServer -> Effect Unit
+setUnlimitedRequestsPerSocket :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 setUnlimitedRequestsPerSocket hs = setMaxRequestsPerSocket 0 hs
 
-timeout :: HttpServer -> Effect Milliseconds
+timeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Milliseconds
 timeout hs = runEffectFn1 timeoutImpl hs
 
-foreign import timeoutImpl :: EffectFn1 (HttpServer) (Milliseconds)
+foreign import timeoutImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Milliseconds)
 
-setTimeout :: Milliseconds -> HttpServer -> Effect Unit
+setTimeout :: forall transmissionType. Milliseconds -> (HttpServer' transmissionType) -> Effect Unit
 setTimeout ms hs = runEffectFn2 setTimeoutImpl ms hs
 
-foreign import setTimeoutImpl :: EffectFn2 (Milliseconds) (HttpServer) (Unit)
+foreign import setTimeoutImpl :: forall transmissionType. EffectFn2 (Milliseconds) ((HttpServer' transmissionType)) (Unit)
 
-clearTimeout :: HttpServer -> Effect Unit
+clearTimeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 clearTimeout hs = setTimeout (Milliseconds 0.0) hs
 
-keepAliveTimeout :: HttpServer -> Effect Milliseconds
+keepAliveTimeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Milliseconds
 keepAliveTimeout hs = runEffectFn1 keepAliveTimeoutImpl hs
 
-foreign import keepAliveTimeoutImpl :: EffectFn1 (HttpServer) (Milliseconds)
+foreign import keepAliveTimeoutImpl :: forall transmissionType. EffectFn1 ((HttpServer' transmissionType)) (Milliseconds)
 
-setKeepAliveTimeout :: Milliseconds -> HttpServer -> Effect Unit
+setKeepAliveTimeout :: forall transmissionType. Milliseconds -> (HttpServer' transmissionType) -> Effect Unit
 setKeepAliveTimeout ms hs = runEffectFn2 setKeepAliveTimeoutImpl ms hs
 
-foreign import setKeepAliveTimeoutImpl :: EffectFn2 (Milliseconds) (HttpServer) (Unit)
+foreign import setKeepAliveTimeoutImpl :: forall transmissionType. EffectFn2 (Milliseconds) ((HttpServer' transmissionType)) (Unit)
 
-clearKeepAliveTimeout :: HttpServer -> Effect Unit
+clearKeepAliveTimeout :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit
 clearKeepAliveTimeout hs = setKeepAliveTimeout (Milliseconds 0.0) hs

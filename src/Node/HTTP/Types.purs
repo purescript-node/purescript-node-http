@@ -13,6 +13,12 @@ foreign import data ClientRequest :: Type
 
 foreign import data ServerResponse :: Type
 
-foreign import data HttpServer :: Type
+data TransmissionType
 
-foreign import data HttpSecureServer :: Type
+foreign import data Encrypted :: TransmissionType
+foreign import data PlainText :: TransmissionType
+
+foreign import data HttpServer' :: TransmissionType -> Type
+
+type HttpServer = HttpServer' PlainText
+type HttpsServer = HttpServer' Encrypted
