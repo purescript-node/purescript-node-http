@@ -105,9 +105,18 @@ request'
   => String
   -> { | r }
   -> Effect ClientRequest
-request' url opts = runEffectFn2 requestOptsImpl url opts
+request' url opts = runEffectFn2 requestUrlOptsImpl url opts
 
-foreign import requestOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import requestUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+
+request''
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => { | r }
+  -> Effect ClientRequest
+request'' opts = runEffectFn1 requestOptsImpl opts
+
+foreign import requestOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 
 get :: String -> Effect ClientRequest
 get url = runEffectFn1 getImpl url
@@ -121,9 +130,18 @@ get'
   => String
   -> { | r }
   -> Effect ClientRequest
-get' url opts = runEffectFn2 getOptsImpl url opts
+get' url opts = runEffectFn2 getUrlOptsImpl url opts
 
-foreign import getOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import getUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+
+get''
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => { | r }
+  -> Effect ClientRequest
+get'' opts = runEffectFn1 getOptsImpl opts
+
+foreign import getOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 
 setMaxIdleHttpParsers :: Int -> Effect Unit
 setMaxIdleHttpParsers i = runEffectFn1 setMaxIdleHttpParsersImpl i

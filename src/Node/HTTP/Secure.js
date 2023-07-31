@@ -4,10 +4,12 @@ export const createSecureServer = () => https.createServer();
 export const createSecureServerOptsImpl = (opts) => https.createServer(opts);
 
 export const requestImpl = (url) => https.request(url);
-export const requestOptsImpl = (url, opts) => https.request(url, opts);
+export const requestUrlOptsImpl = (url, opts) => https.request(url, opts);
+export const requestOptsImpl = (opts) => https.request(opts);
 
 export const getImpl = (url) => https.get(url);
-export const getOptsImpl = (url, opts) => https.get(url, opts);
+export const getUrlOptsImpl = (url, opts) => https.get(url, opts);
+export const getOptsImpl = (opts) => https.get(opts);
 
 export const closeAllConnectionsImpl = (hs) => hs.closeAllConnections();
 export const closeIdleConnectionsImpl = (hs) => hs.closeIdleConnections();
