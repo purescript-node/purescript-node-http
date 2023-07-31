@@ -3,36 +3,30 @@ module Test.Main where
 import Prelude
 
 import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Options (Options, options, (:=))
-import Data.Tuple (Tuple(..))
+import Data.Maybe (fromMaybe)
 import Effect (Effect)
 import Effect.Console (log, logShow)
-import Effect.Uncurried (EffectFn1, EffectFn2, mkEffectFn2, runEffectFn1, runEffectFn2)
-import Foreign (Foreign)
-import Foreign.Object (fromFoldable, lookup)
+import Effect.Uncurried (EffectFn2)
+import Foreign.Object (lookup)
+import Node.Buffer (Buffer)
+import Node.Buffer as Buffer
 import Node.Encoding (Encoding(..))
-import Node.HTTP (Request, Response, Server, close, listen, onUpgrade, requestAsStream, requestHeaders, requestMethod, requestURL, responseAsStream, setHeader, setStatusCode)
-import Node.HTTP.Client as Client
-import Node.HTTP.Secure (SSLOptions)
-import Node.HTTP.Secure as HTTPS
-import Node.Net.Socket as Socket
-import Node.Stream (Writable, end, pipe, writeString)
+import Node.EventEmitter (once_)
+import Node.HTTP as HTTP
+import Node.HTTP.ClientRequest as Client
+import Node.HTTP.IncomingMessage as IM
+import Node.HTTP.OutgoingMessage as OM
+import Node.HTTP.Server (closeAllConnections)
+import Node.HTTP.Server as Server
+import Node.HTTP.ServerResponse as ServerResponse
+import Node.HTTP.Types (HttpServer', IMServer, IncomingMessage, ServerResponse)
+import Node.HTTPS as HTTPS
+import Node.Net.Server (listenTcp)
+import Node.Net.Server as NetServer
+import Node.Stream (Duplex, Writable, end, pipe)
 import Node.Stream as Stream
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
-
-foreign import createServerOnly :: Effect Server
-
-createSecureServerOnly :: Options SSLOptions -> Effect Server
-createSecureServerOnly opts = runEffectFn1 createSecureServerOnlyImpl $ options opts
-
-foreign import createSecureServerOnlyImpl :: EffectFn1 (Foreign) (Server)
-
-onRequest :: Server -> (Request -> Response -> Effect Unit) -> Effect Unit
-onRequest s cb = runEffectFn2 onRequestImpl s $ mkEffectFn2 cb
-
-foreign import onRequestImpl :: EffectFn2 (Server) (EffectFn2 Request Response Unit) (Unit)
 
 foreign import setTimeoutImpl :: EffectFn2 Int (Effect Unit) Unit
 
@@ -46,14 +40,22 @@ main = do
   testHttps
   testCookies
 
-respond :: Effect Unit -> Request -> Response -> Effect Unit
+killServer :: forall transmissionType. HttpServer' transmissionType -> Effect Unit
+killServer s = do
+  let ns = Server.toNetServer s
+  closeAllConnections s
+  NetServer.close ns
+
+respond :: Effect Unit -> IncomingMessage IMServer -> ServerResponse -> Effect Unit
 respond closeServer req res = do
-  setStatusCode res 200
+  ServerResponse.setStatusCode 200 res
   let
-    inputStream = requestAsStream req
-    outputStream = responseAsStream res
-  log (requestMethod req <> " " <> requestURL req)
-  case requestMethod req of
+    inputStream = IM.toReadable req
+    om = ServerResponse.toOutgoingMessage res
+    outputStream = OM.toWriteable om
+
+  log (IM.method req <> " " <> IM.url req)
+  case IM.method req of
     "GET" -> do
       let
         html = foldMap (_ <> "\n")
@@ -62,20 +64,29 @@ respond closeServer req res = do
           , "  <input type='submit'>"
           , "</form>"
           ]
-      setHeader res "Content-Type" "text/html"
-      _ <- writeString outputStream UTF8 html
-      end outputStream
-    "POST" -> void $ pipe inputStream outputStream
-    _ -> unsafeCrashWith "Unexpected HTTP method"
+
+      OM.setHeader "Content-Type" "text/html" om
+      void $ Stream.writeString outputStream UTF8 html
+      Stream.end outputStream
+    "POST" ->
+      pipe inputStream outputStream
+    _ ->
+      unsafeCrashWith "Unexpected HTTP method"
   closeServer
 
 testBasic :: Effect Unit
 testBasic = do
-  server <- createServerOnly
-  onRequest server $ respond (close server mempty)
-  listen server { hostname: "localhost", port: 8080, backlog: Nothing } $ void do
+  server <- HTTP.createServer
+  server # once_ Server.requestH (respond (killServer server))
+  let netServer = Server.toNetServer server
+  netServer # once_ NetServer.listeningH do
     log "Listening on port 8080."
-    simpleReq "http://localhost:8080"
+    let uri = "http://localhost:8080"
+    log ("GET " <> uri <> ":")
+    req <- HTTP.get uri
+    req # once_ Client.responseH logResponse
+    end (OM.toWriteable $ Client.toOutgoingMessage req)
+  listenTcp netServer { host: "localhost", port: 8080 }
 
 mockCert :: String
 mockCert =
@@ -133,118 +144,119 @@ TbGfXbnVfNmqgQh71+k02p6S
 
 testHttpsServer :: Effect Unit
 testHttpsServer = do
-  server <- createSecureServerOnly sslOpts
-  onRequest server $ respond (close server mempty)
-  listen server { hostname: "localhost", port: 8081, backlog: Nothing } $ void do
+  mockKey' <- Buffer.fromString mockKey UTF8
+  mockCert' <- Buffer.fromString mockCert UTF8
+  server <- HTTPS.createSecureServer'
+    { key: [ mockKey' ]
+    , cert: [ mockCert' ]
+    }
+  server # once_ Server.requestH (respond (killServer server))
+  let netServer = Server.toNetServer server
+  netServer # once_ NetServer.listeningH do
     log "Listening on port 8081."
-    complexReq $
-      Client.protocol := "https:"
-        <> Client.method := "GET"
-        <> Client.hostname := "localhost"
-        <> Client.port := 8081
-        <> Client.path := "/"
-        <>
-          Client.rejectUnauthorized := false
-  where
-  sslOpts =
-    HTTPS.key := HTTPS.keyString mockKey <>
-      HTTPS.cert := HTTPS.certString mockCert
+    let
+      optsR =
+        { protocol: "https:"
+        , method: "GET"
+        , hostname: "localhost"
+        , port: 8081
+        , path: "/"
+        , rejectUnauthorized: false
+        }
+    log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> show optsR.port <> optsR.path <> ":"
+    req <- HTTPS.request'' optsR
+    req # once_ Client.responseH logResponse
+    end (OM.toWriteable $ Client.toOutgoingMessage req)
+  listenTcp netServer { host: "localhost", port: 8081 }
 
 testHttps :: Effect Unit
-testHttps =
-  simpleReq "https://pursuit.purescript.org/packages/purescript-node-http/badge"
+testHttps = do
+  let uri = "https://pursuit.purescript.org/packages/purescript-node-http/badge"
+  log ("GET " <> uri <> ":")
+  req <- HTTPS.get uri
+  req # once_ Client.responseH logResponse
+  end (OM.toWriteable $ Client.toOutgoingMessage req)
 
 testCookies :: Effect Unit
-testCookies =
-  simpleReq
-    "https://httpbin.org/cookies/set?cookie1=firstcookie&cookie2=secondcookie"
-
-simpleReq :: String -> Effect Unit
-simpleReq uri = do
+testCookies = do
+  let uri = "https://httpbin.org/cookies/set?cookie1=firstcookie&cookie2=secondcookie"
   log ("GET " <> uri <> ":")
-  req <- Client.requestFromURI uri logResponse
-  end (Client.requestAsStream req)
+  req <- HTTPS.get uri
+  req # once_ Client.responseH logResponse
+  end (OM.toWriteable $ Client.toOutgoingMessage req)
 
-complexReq :: Options Client.RequestOptions -> Effect Unit
-complexReq opts = do
-  log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> optsR.port <> optsR.path <> ":"
-  req <- Client.request opts logResponse
-  end (Client.requestAsStream req)
-  where
-  optsR = unsafeCoerce $ options opts
-
-logResponse :: Client.Response -> Effect Unit
+logResponse :: forall imTy. IncomingMessage imTy -> Effect Unit
 logResponse response = void do
   log "Headers:"
-  logShow $ Client.responseHeaders response
+  logShow $ IM.headers response
   log "Cookies:"
-  logShow $ Client.responseCookies response
+  logShow $ IM.cookies response
   log "Response:"
-  let responseStream = Client.responseAsStream response
-  pipe responseStream stdout
+  pipe (IM.toReadable response) stdout
 
 testUpgrade :: Effect Unit
 testUpgrade = do
-  server <- createServerOnly
-  -- Set timeout to close server
-  runEffectFn2 setTimeoutImpl 10_000 (close server mempty)
-  onUpgrade server handleUpgrade
-  onRequest server $ respond (mempty)
-  listen server { hostname: "localhost", port: 3000, backlog: Nothing }
-    $ void do
-        log "Listening on port 3000."
-        sendRequests
+  server <- HTTP.createServer
+  server # once_ Server.upgradeH handleUpgrade
+
+  server # once_ Server.requestH (respond (mempty))
+  let netServer = Server.toNetServer server
+  netServer # once_ NetServer.listeningH do
+    log $ "Listening on port " <> show httpPort <> "."
+    sendRequests
+  listenTcp netServer { host: "localhost", port: httpPort }
   where
+  httpPort = 3000
+
+  handleUpgrade :: IncomingMessage IMServer -> Duplex -> Buffer -> Effect Unit
   handleUpgrade req socket _ = do
-    let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ requestHeaders req
-    let sockStream = Socket.toDuplex socket
+    let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ IM.headers req
     if upgradeHeader == "websocket" then
-      void $ Stream.writeString sockStream
-        UTF8
+      void $ Stream.writeString socket UTF8
         "HTTP/1.1 101 Switching Protocols\r\nContent-Length: 0\r\n\r\n"
     else
-      void $ Stream.writeString sockStream
-        UTF8
+      void $ Stream.writeString socket UTF8
         "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
 
+  sendRequests :: Effect Unit
   sendRequests = do
     -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
-    reqSimple <- Client.request (Client.port := 3000) \response -> do
-      if (Client.statusCode response /= 200) then
+    reqSimple <- HTTP.request'' { port: httpPort }
+    reqSimple # once_ Client.responseH \response -> do
+      if (IM.statusCode response /= 200) then
         unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
       else
         pure unit
-    end (Client.requestAsStream reqSimple)
+    end (OM.toWriteable $ Client.toOutgoingMessage reqSimple)
+
     {-
       These two requests test that the upgrade callback is called and that it has
       access to the original request and can write to the underlying TCP socket
     -}
-    let
-      headers = Client.RequestHeaders $ fromFoldable
-        [ Tuple "Connection" "upgrade"
-        , Tuple "Upgrade" "something"
-        ]
-    reqUpgrade <- Client.request
-      (Client.port := 3000 <> Client.headers := headers)
-      \response -> do
-        if (Client.statusCode response /= 426) then
-          unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
-        else
-          pure unit
-    end (Client.requestAsStream reqUpgrade)
+    reqUpgrade <- HTTP.request''
+      { port: httpPort
+      , headers: unsafeCoerce
+          { "Connection": "upgrade"
+          , "Upgrade": "something"
+          }
+      }
+    reqUpgrade # once_ Client.responseH \response -> do
+      if (IM.statusCode response /= 426) then
+        unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
+      else
+        pure unit
+    end (OM.toWriteable $ Client.toOutgoingMessage reqUpgrade)
 
-    let
-      wsHeaders = Client.RequestHeaders $ fromFoldable
-        [ Tuple "Connection" "upgrade"
-        , Tuple "Upgrade" "websocket"
-        ]
-
-    reqWSUpgrade <- Client.request
-      (Client.port := 3000 <> Client.headers := wsHeaders)
-      \response -> do
-        if (Client.statusCode response /= 101) then
-          unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
-        else
-          pure unit
-    end (Client.requestAsStream reqWSUpgrade)
-    pure unit
+    reqWSUpgrade <- HTTP.request''
+      { port: httpPort
+      , headers: unsafeCoerce
+          { "Connection": "upgrade"
+          , "Upgrade": "websocket"
+          }
+      }
+    reqWSUpgrade # once_ Client.responseH \response -> do
+      if (IM.statusCode response /= 101) then
+        unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
+      else
+        pure unit
+    end (OM.toWriteable $ Client.toOutgoingMessage reqWSUpgrade)
