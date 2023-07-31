@@ -4,6 +4,14 @@ export const sendDateImpl = (sr) => sr.sendDate;
 export const setSendDateImpl = (d, sr) => {
   sr.sendDate = d;
 };
+export const statusCodeImpl = (sr) => sr.statusCode;
+export const setStatusCodeImpl = (code, sr) => {
+  sr.statusCode = code;
+};
+export const statusMessageImpl = (sr) => sr.statusMessage;
+export const setStatusMessageImpl = (msg, sr) => {
+  sr.statusMessage = msg;
+};
 export const strictContentLengthImpl = (sr) => sr.strictContentLength;
 export const setStrictContentLengthImpl = (b, sr) => {
   sr.strictContentLength = b;

@@ -30,6 +30,26 @@ setSendDate b sr = runEffectFn2 setSendDateImpl b sr
 
 foreign import setSendDateImpl :: EffectFn2 (Boolean) (ServerResponse) (Unit)
 
+statusCode :: ServerResponse -> Effect Int
+statusCode sr = runEffectFn1 statusCodeImpl sr
+
+foreign import statusCodeImpl :: EffectFn1 (ServerResponse) (Int)
+
+setStatusCode :: Int -> ServerResponse -> Effect Unit
+setStatusCode code sr = runEffectFn2 setStatusCodeImpl code sr
+
+foreign import setStatusCodeImpl :: EffectFn2 (Int) (ServerResponse) (Unit)
+
+statusMessage :: ServerResponse -> Effect String
+statusMessage sr = runEffectFn1 statusMessageImpl sr
+
+foreign import statusMessageImpl :: EffectFn1 (ServerResponse) (String)
+
+setStatusMessage :: String -> ServerResponse -> Effect Unit
+setStatusMessage msg sr = runEffectFn2 setStatusMessageImpl msg sr
+
+foreign import setStatusMessageImpl :: EffectFn2 (String) (ServerResponse) (Unit)
+
 strictContentLength :: ServerResponse -> Effect Boolean
 strictContentLength sr = runEffectFn1 strictContentLengthImpl sr
 
@@ -51,22 +71,22 @@ writeEarlyHints' hints cb sr = runEffectFn3 writeEarlyHintsCbImpl hints cb sr
 foreign import writeEarlyHintsCbImpl :: forall r. EffectFn3 ({ | r }) (Effect Unit) (ServerResponse) (Unit)
 
 writeHead :: Int -> ServerResponse -> Effect Unit
-writeHead statusCode sr = runEffectFn2 writeHeadImpl statusCode sr
+writeHead statusCode' sr = runEffectFn2 writeHeadImpl statusCode' sr
 
 foreign import writeHeadImpl :: EffectFn2 (Int) (ServerResponse) (Unit)
 
 writeHead' :: Int -> String -> ServerResponse -> Effect Unit
-writeHead' statusCode statusMsg sr = runEffectFn3 writeHeadMsgImpl statusCode statusMsg sr
+writeHead' statusCode' statusMsg sr = runEffectFn3 writeHeadMsgImpl statusCode' statusMsg sr
 
 foreign import writeHeadMsgImpl :: EffectFn3 (Int) (String) (ServerResponse) (Unit)
 
 writeHeadHeaders :: forall r. Int -> { | r } -> ServerResponse -> Effect Unit
-writeHeadHeaders statusCode hdrs sr = runEffectFn3 writeHeadHeadersImpl statusCode hdrs sr
+writeHeadHeaders statusCode' hdrs sr = runEffectFn3 writeHeadHeadersImpl statusCode' hdrs sr
 
 foreign import writeHeadHeadersImpl :: forall r. EffectFn3 (Int) ({ | r }) (ServerResponse) (Unit)
 
 writeHeadMsgHeaders :: forall r. Int -> String -> { | r } -> ServerResponse -> Effect Unit
-writeHeadMsgHeaders statusCode msg hdrs sr = runEffectFn4 writeHeadMsgHeadersImpl statusCode msg hdrs sr
+writeHeadMsgHeaders statusCode' msg hdrs sr = runEffectFn4 writeHeadMsgHeadersImpl statusCode' msg hdrs sr
 
 foreign import writeHeadMsgHeadersImpl :: forall r. EffectFn4 (Int) (String) ({ | r }) (ServerResponse) (Unit)
 
