@@ -8,8 +8,51 @@ import Node.HTTP.Types (ClientRequest, HttpServer', Encrypted)
 import Node.TLS.Types as TLS
 import Prim.Row as Row
 
+-- | Example usage. See `createSecureServer'` to pass in options:
+-- |
+-- | ```
+-- | server <- HTTPS.createSecureServer
+-- | -- setup request handler
+-- | server # on Server.requestH \request response -> do
+-- |   -- send back a response
+-- | 
+-- | -- (optional) setup listener callback
+-- | let ns = Server.toNetServer server
+-- | ns # once_ NetServer.listeningH do
+-- | 
+-- | -- start the server
+-- | listenTcp ns { host: "localhost", port: 8000 }
+-- | 
+-- | -- Sometime in the future, close the server
+-- | Server.closeAllConnections
+-- | NetServer.close ns
+-- | ```
 foreign import createSecureServer :: Effect (HttpServer' Encrypted)
 
+-- | Example usage:
+-- |
+-- | ```
+-- | key' <- FSA.readFile "path/to/key/file"
+-- | cert' <- FSA.readFile "path/to/cert/file"
+-- | server <- HTTPS.createSecureServer'
+-- |   { key: [ mockKey' ]
+-- |   , cert: [ mockCert' ]
+-- |   }
+-- | -- setup request handler
+-- | server # on Server.requestH \request response -> do
+-- |   -- send back a response
+-- | 
+-- | -- (optional) setup listener callback
+-- | let ns = Server.toNetServer server
+-- | ns # once_ NetServer.listeningH do
+-- | 
+-- | -- start the server
+-- | listenTcp ns { host: "localhost", port: 8000 }
+-- | 
+-- | -- Sometime in the future, close the server
+-- | Server.closeAllConnections
+-- | NetServer.close ns
+-- | ```
 createSecureServer'
   :: forall r trash
    . Row.Union r trash (TLS.TlsCreateServerOptions TLS.Server (TLS.CreateSecureContextOptions CreateServerOptions))
