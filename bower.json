@@ -24,7 +24,7 @@
     "purescript-node-buffer": "^9.0.0",
     "purescript-node-net": "^5.1.0",
     "purescript-node-streams": "^9.0.0",
-    "purescript-node-tls": "https://github.com/JordanMartinez/purescript-node-tls.git#^0.3.0",
+    "purescript-node-tls": "https://github.com/purescript-node/purescript-node-tls.git#^0.3.1",
     "purescript-node-url": "^7.0.0",
     "purescript-nullable": "^6.0.0",
     "purescript-options": "^7.0.0",
