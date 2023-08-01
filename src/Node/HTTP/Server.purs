@@ -45,7 +45,7 @@ import Node.Buffer (Buffer)
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0, EventHandle2, EventHandle3, EventHandle1)
 import Node.HTTP.Types (Encrypted, HttpServer', IMServer, IncomingMessage, ServerResponse)
-import Node.Net.Types (Server, TCP)
+import Node.Net.Types (Server, Socket, TCP)
 import Node.Stream (Duplex)
 import Node.TLS.Types (TlsServer)
 import Unsafe.Coerce (unsafeCoerce)
@@ -76,7 +76,7 @@ clientErrorH = EventHandle "clientError" \cb -> mkEffectFn2 \a b -> cb a b
 closeH :: forall transmissionType. EventHandle0 (HttpServer' transmissionType)
 closeH = EventHandle "close" identity
 
-connectH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) Duplex Buffer
+connectH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) (Socket TCP) Buffer
 connectH = EventHandle "connect" \cb -> mkEffectFn3 \a b c -> cb a b c
 
 connectionH :: forall transmissionType. EventHandle1 (HttpServer' transmissionType) Duplex
@@ -88,7 +88,7 @@ dropRequestH = EventHandle "dropRequest" \cb -> mkEffectFn2 \a b -> cb a b
 requestH :: forall transmissionType. EventHandle2 (HttpServer' transmissionType) (IncomingMessage IMServer) ServerResponse
 requestH = EventHandle "request" \cb -> mkEffectFn2 \a b -> cb a b
 
-upgradeH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) Duplex Buffer
+upgradeH :: forall transmissionType. EventHandle3 (HttpServer' transmissionType) (IncomingMessage IMServer) (Socket TCP) Buffer
 upgradeH = EventHandle "upgrade" \cb -> mkEffectFn3 \a b c -> cb a b c
 
 closeAllConnections :: forall transmissionType. (HttpServer' transmissionType) -> Effect Unit

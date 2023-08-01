@@ -30,7 +30,8 @@ import Foreign.Object as Object
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0)
 import Node.HTTP.Types (IMClientRequest, IMServer, IncomingMessage)
-import Node.Stream (Readable, Duplex)
+import Node.Net.Types (Socket, TCP)
+import Node.Stream (Readable)
 import Unsafe.Coerce (unsafeCoerce)
 
 toReadable :: forall messageType. IncomingMessage messageType -> Readable ()
@@ -65,10 +66,10 @@ rawTrailers im = toMaybe $ rawTrailersImpl im
 
 foreign import rawTrailersImpl :: forall messageType. IncomingMessage messageType -> (Nullable (Array String))
 
-socket :: forall messageType. IncomingMessage messageType -> Effect (Maybe Duplex)
+socket :: forall messageType. IncomingMessage messageType -> Effect (Maybe (Socket TCP))
 socket im = map toMaybe $ runEffectFn1 socketImpl im
 
-foreign import socketImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Nullable Duplex)
+foreign import socketImpl :: forall messageType. EffectFn1 (IncomingMessage messageType) (Nullable (Socket TCP))
 
 foreign import statusCode :: IncomingMessage IMClientRequest -> Int
 
