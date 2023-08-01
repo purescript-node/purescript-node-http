@@ -10,6 +10,7 @@ import Foreign.Object (Object)
 import Node.HTTP.Types (ClientRequest, HttpServer)
 import Node.Net.Types (ConnectTcpOptions)
 import Node.Stream (Duplex)
+import Node.URL (URL)
 import Prim.Row as Row
 
 -- | - `connectionsCheckingInterval`: Sets the interval value in milliseconds to check for request and headers timeout in incomplete requests. Default: 30000.
@@ -47,9 +48,14 @@ foreign import createServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpServer
 foreign import maxHeaderSize :: Int
 
 request :: String -> Effect ClientRequest
-request url = runEffectFn1 requestImpl url
+request url = runEffectFn1 requestStrImpl url
 
-foreign import requestImpl :: EffectFn1 (String) (ClientRequest)
+foreign import requestStrImpl :: EffectFn1 (String) (ClientRequest)
+
+requestUrl :: URL -> Effect ClientRequest
+requestUrl url = runEffectFn1 requestUrlImpl url
+
+foreign import requestUrlImpl :: EffectFn1 (URL) (ClientRequest)
 
 -- | - `auth` <string> Basic authentication ('user:password') to compute an Authorization header.
 -- | - `createConnection` <Function> A function that produces a socket/stream to use for the request when the agent option is not used. This can be used to avoid creating a custom Agent class just to override the default createConnection function. See agent.createConnection() for more details. Any Duplex stream is a valid return value.
@@ -105,23 +111,38 @@ request'
   => String
   -> { | r }
   -> Effect ClientRequest
-request' url opts = runEffectFn2 requestUrlOptsImpl url opts
+request' url opts = runEffectFn2 requestStrOptsImpl url opts
 
-foreign import requestUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import requestStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
-request''
+requestURL'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+requestURL' url opts = runEffectFn2 requestUrlOptsImpl url opts
+
+foreign import requestUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
+
+requestOpts
   :: forall r trash
    . Row.Union r trash (RequestOptions ())
   => { | r }
   -> Effect ClientRequest
-request'' opts = runEffectFn1 requestOptsImpl opts
+requestOpts opts = runEffectFn1 requestOptsImpl opts
 
 foreign import requestOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 
 get :: String -> Effect ClientRequest
-get url = runEffectFn1 getImpl url
+get url = runEffectFn1 getStrImpl url
 
-foreign import getImpl :: EffectFn1 (String) (ClientRequest)
+foreign import getStrImpl :: EffectFn1 (String) (ClientRequest)
+
+getUrl :: URL -> Effect ClientRequest
+getUrl url = runEffectFn1 getUrlImpl url
+
+foreign import getUrlImpl :: EffectFn1 (URL) (ClientRequest)
 
 get'
   :: forall r trash
@@ -130,16 +151,27 @@ get'
   => String
   -> { | r }
   -> Effect ClientRequest
-get' url opts = runEffectFn2 getUrlOptsImpl url opts
+get' url opts = runEffectFn2 getStrOptsImpl url opts
 
-foreign import getUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import getStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
-get''
+getUrl'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => Row.Lacks "method" r
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+getUrl' url opts = runEffectFn2 getUrlOptsImpl url opts
+
+foreign import getUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
+
+getOpts
   :: forall r trash
    . Row.Union r trash (RequestOptions ())
   => { | r }
   -> Effect ClientRequest
-get'' opts = runEffectFn1 getOptsImpl opts
+getOpts opts = runEffectFn1 getOptsImpl opts
 
 foreign import getOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 

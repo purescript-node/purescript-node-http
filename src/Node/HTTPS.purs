@@ -6,6 +6,7 @@ import Node.Buffer (Buffer)
 import Node.HTTP (CreateServerOptions, RequestOptions)
 import Node.HTTP.Types (ClientRequest, HttpServer', Encrypted)
 import Node.TLS.Types as TLS
+import Node.URL (URL)
 import Prim.Row as Row
 
 -- | Example usage. See `createSecureServer'` to pass in options:
@@ -63,9 +64,14 @@ createSecureServer' opts = runEffectFn1 createSecureServerOptsImpl opts
 foreign import createSecureServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpServer' Encrypted)
 
 request :: String -> Effect ClientRequest
-request url = runEffectFn1 requestImpl url
+request url = runEffectFn1 requestStrImpl url
 
-foreign import requestImpl :: EffectFn1 (String) (ClientRequest)
+foreign import requestStrImpl :: EffectFn1 (String) (ClientRequest)
+
+requestUrl :: URL -> Effect ClientRequest
+requestUrl url = runEffectFn1 requestUrlImpl url
+
+foreign import requestUrlImpl :: EffectFn1 (URL) (ClientRequest)
 
 -- | - `ca` <string> | <string[]> | <Buffer> | <Buffer[]> Optionally override the trusted CA certificates. Default is to trust the well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced when CAs are explicitly specified using this option. The value can be a string or Buffer, or an Array of strings and/or Buffers. Any string or Buffer can contain multiple PEM CAs concatenated together. The peer's certificate must be chainable to a CA trusted by the server for the connection to be authenticated. When using certificates that are not chainable to a well-known CA, the certificate's CA must be explicitly specified as a trusted or the connection will fail to authenticate. If the peer uses a certificate that doesn't match or chain to one of the default CAs, use the ca option to provide a CA certificate that the peer's certificate can match or chain to. For self-signed certificates, the certificate is its own CA, and must be provided. For PEM encoded certificates, supported types are "TRUSTED CERTIFICATE", "X509 CERTIFICATE", and "CERTIFICATE". See also tls.rootCertificates.
 -- | - `cert` <string> | <string[]> | <Buffer> | <Buffer[]> Cert chains in PEM format. One cert chain should be provided per private key. Each cert chain should consist of the PEM formatted certificate for a provided private key, followed by the PEM formatted intermediate certificates (if any), in order, and not including the root CA (the root CA must be pre-known to the peer, see ca). When providing multiple cert chains, they do not have to be in the same order as their private keys in key. If the intermediate certificates are not provided, the peer will not be able to validate the certificate, and the handshake will fail.
@@ -111,23 +117,38 @@ request'
   => String
   -> { | r }
   -> Effect ClientRequest
-request' url opts = runEffectFn2 requestUrlOptsImpl url opts
+request' url opts = runEffectFn2 requestStrOptsImpl url opts
 
-foreign import requestUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import requestStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
-request''
+requestURL'
+  :: forall r trash
+   . Row.Union r trash SecureRequestOptions
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+requestURL' url opts = runEffectFn2 requestUrlOptsImpl url opts
+
+foreign import requestUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
+
+requestOpts
   :: forall r trash
    . Row.Union r trash SecureRequestOptions
   => { | r }
   -> Effect ClientRequest
-request'' opts = runEffectFn1 requestOptsImpl opts
+requestOpts opts = runEffectFn1 requestOptsImpl opts
 
 foreign import requestOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 
 get :: String -> Effect ClientRequest
-get url = runEffectFn1 getImpl url
+get url = runEffectFn1 getStrImpl url
 
-foreign import getImpl :: EffectFn1 (String) (ClientRequest)
+foreign import getStrImpl :: EffectFn1 (String) (ClientRequest)
+
+getUrl :: URL -> Effect ClientRequest
+getUrl url = runEffectFn1 getUrlImpl url
+
+foreign import getUrlImpl :: EffectFn1 (URL) (ClientRequest)
 
 get'
   :: forall r trash
@@ -136,16 +157,26 @@ get'
   => String
   -> { | r }
   -> Effect ClientRequest
-get' url opts = runEffectFn2 getUrlOptsImpl url opts
+get' url opts = runEffectFn2 getStrOptsImpl url opts
 
-foreign import getUrlOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
+foreign import getStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
-get''
+getUrl'
   :: forall r trash
    . Row.Union r trash SecureRequestOptions
   => Row.Lacks "method" r
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+getUrl' url opts = runEffectFn2 getUrlOptsImpl url opts
+
+foreign import getUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
+
+getOpts
+  :: forall r trash
+   . Row.Union r trash SecureRequestOptions
   => { | r }
   -> Effect ClientRequest
-get'' opts = runEffectFn1 getOptsImpl opts
+getOpts opts = runEffectFn1 getOptsImpl opts
 
 foreign import getOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
