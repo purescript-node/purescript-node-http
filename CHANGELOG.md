@@ -12,6 +12,11 @@ Bugfixes:
 
 Other improvements:
 
+## [v9.1.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v9.1.0) - 2023-08-01
+
+Other improvements:
+- Update `node-tls` to `v0.3.1` to fix conflicting transitive dep on `node-buffer` (#52 by @JordanMartinez)
+
 ## [v9.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v9.0.0) - 2023-08-01
 
 Breaking changes:
