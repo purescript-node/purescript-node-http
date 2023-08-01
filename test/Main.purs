@@ -164,7 +164,7 @@ testHttpsServer = do
         , rejectUnauthorized: false
         }
     log $ optsR.method <> " " <> optsR.protocol <> "//" <> optsR.hostname <> ":" <> show optsR.port <> optsR.path <> ":"
-    req <- HTTPS.request'' optsR
+    req <- HTTPS.requestOpts optsR
     req # once_ Client.responseH logResponse
     end (OM.toWriteable $ Client.toOutgoingMessage req)
   listenTcp netServer { host: "localhost", port: 8081 }
@@ -221,7 +221,7 @@ testUpgrade = do
   sendRequests :: Effect Unit
   sendRequests = do
     -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
-    reqSimple <- HTTP.request'' { port: httpPort }
+    reqSimple <- HTTP.requestOpts { port: httpPort }
     reqSimple # once_ Client.responseH \response -> do
       if (IM.statusCode response /= 200) then
         unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
@@ -233,7 +233,7 @@ testUpgrade = do
       These two requests test that the upgrade callback is called and that it has
       access to the original request and can write to the underlying TCP socket
     -}
-    reqUpgrade <- HTTP.request''
+    reqUpgrade <- HTTP.requestOpts
       { port: httpPort
       , headers: unsafeCoerce
           { "Connection": "upgrade"
@@ -247,7 +247,7 @@ testUpgrade = do
         pure unit
     end (OM.toWriteable $ Client.toOutgoingMessage reqUpgrade)
 
-    reqWSUpgrade <- HTTP.request''
+    reqWSUpgrade <- HTTP.requestOpts
       { port: httpPort
       , headers: unsafeCoerce
           { "Connection": "upgrade"

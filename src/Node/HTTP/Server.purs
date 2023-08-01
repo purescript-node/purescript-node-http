@@ -32,7 +32,6 @@ module Node.HTTP.Server
   , keepAliveTimeout
   , setKeepAliveTimeout
   , clearKeepAliveTimeout
-
   ) where
 
 import Prelude

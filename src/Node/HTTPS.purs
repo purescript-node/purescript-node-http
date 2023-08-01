@@ -1,4 +1,19 @@
-module Node.HTTPS where
+module Node.HTTPS
+  ( CreateSecureServerOptions
+  , createSecureServer
+  , createSecureServer'
+  , request
+  , requestUrl
+  , SecureRequestOptions
+  , request'
+  , requestURL'
+  , requestOpts
+  , get
+  , getUrl
+  , get'
+  , getUrl'
+  , getOpts
+  ) where
 
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
@@ -30,6 +45,9 @@ import Prim.Row as Row
 -- | ```
 foreign import createSecureServer :: Effect (HttpServer' Encrypted)
 
+type CreateSecureServerOptions =
+  TLS.TlsCreateServerOptions TLS.Server (TLS.CreateSecureContextOptions CreateServerOptions)
+
 -- | Example usage:
 -- |
 -- | ```
@@ -56,7 +74,7 @@ foreign import createSecureServer :: Effect (HttpServer' Encrypted)
 -- | ```
 createSecureServer'
   :: forall r trash
-   . Row.Union r trash (TLS.TlsCreateServerOptions TLS.Server (TLS.CreateSecureContextOptions CreateServerOptions))
+   . Row.Union r trash CreateSecureServerOptions
   => { | r }
   -> Effect (HttpServer' Encrypted)
 createSecureServer' opts = runEffectFn1 createSecureServerOptsImpl opts

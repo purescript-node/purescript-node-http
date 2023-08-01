@@ -1,4 +1,21 @@
-module Node.HTTP where
+module Node.HTTP
+  ( CreateServerOptions
+  , createServer
+  , createServer'
+  , maxHeaderSize
+  , request
+  , requestUrl
+  , RequestOptions
+  , request'
+  , requestURL'
+  , requestOpts
+  , get
+  , getUrl
+  , get'
+  , getUrl'
+  , getOpts
+  , setMaxIdleHttpParsers
+  ) where
 
 import Prelude
 
