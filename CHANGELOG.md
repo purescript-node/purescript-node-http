@@ -5,15 +5,22 @@ Notable changes to this project are documented in this file. The format is based
 ## [Unreleased]
 
 Breaking changes:
-- Update node libraries to latest releases (#48 by @JordanMartinez)
-- Reimplement `http`/`https` bindings (#49, #50 by @JordanMartinez)
 
 New features:
 
 Bugfixes:
 
 Other improvements:
+
+## [v9.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v9.0.0) - 2023-08-01
+
+Breaking changes:
+- Update node libraries to latest releases (#48 by @JordanMartinez)
+- Reimplement `http`/`https` bindings (#49, #50 by @JordanMartinez)
+
+Other improvements:
 - Fix flaky `upgrade` test (#50 by @JordanMartinez)
+- Add links to Node's docs (#51 by @JordanMartinez)
 
 ## [v8.0.0](https://github.com/purescript-node/purescript-node-http/releases/tag/v8.0.0) - 2022-04-29
 
