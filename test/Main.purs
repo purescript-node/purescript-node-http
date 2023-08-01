@@ -2,16 +2,18 @@ module Test.Main where
 
 import Prelude
 
-import Data.Foldable (foldMap)
+import Data.Either (Either(..))
+import Data.Foldable (foldMap, for_)
 import Data.Maybe (fromMaybe)
 import Effect (Effect)
+import Effect.Aff (launchAff_, makeAff, nonCanceler)
+import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Effect.Uncurried (EffectFn2)
 import Foreign.Object (lookup)
-import Node.Buffer (Buffer)
 import Node.Buffer as Buffer
 import Node.Encoding (Encoding(..))
-import Node.EventEmitter (once_)
+import Node.EventEmitter (once, once_)
 import Node.HTTP as HTTP
 import Node.HTTP.ClientRequest as Client
 import Node.HTTP.IncomingMessage as IM
@@ -23,7 +25,8 @@ import Node.HTTP.Types (HttpServer', IMServer, IncomingMessage, ServerResponse)
 import Node.HTTPS as HTTPS
 import Node.Net.Server (listenTcp)
 import Node.Net.Server as NetServer
-import Node.Stream (Duplex, Writable, end, pipe)
+import Node.Net.Socket as Socket
+import Node.Stream (Writable, end, pipe)
 import Node.Stream as Stream
 import Partial.Unsafe (unsafeCrashWith)
 import Unsafe.Coerce (unsafeCoerce)
@@ -35,7 +38,7 @@ foreign import stdout :: forall r. Writable r
 main :: Effect Unit
 main = do
   testBasic
-  -- testUpgrade
+  testUpgrade
   testHttpsServer
   testHttps
   testCookies
@@ -195,44 +198,60 @@ logResponse response = void do
   pipe (IM.toReadable response) stdout
 
 testUpgrade :: Effect Unit
-testUpgrade = do
-  server <- HTTP.createServer
-  server # once_ Server.upgradeH handleUpgrade
-
-  server # once_ Server.requestH (respond (mempty))
+testUpgrade = launchAff_ do
+  server <- liftEffect HTTP.createServer
   let netServer = Server.toNetServer server
-  netServer # once_ NetServer.listeningH do
-    log $ "Listening on port " <> show httpPort <> "."
-    sendRequests
-  listenTcp netServer { host: "localhost", port: httpPort }
+  waitUntilListening netServer
+
+  -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
+  doRegularRequest server
+
+  -- These two requests test that the upgrade callback is called and that it has
+  -- access to the original request and can write to the underlying TCP socket
+  checkUpgradeRequest server
+  checkWebSocketUpgrade server
+
+  liftEffect do
+    closeAllConnections server
+    NetServer.close netServer
   where
   httpPort = 3000
 
-  handleUpgrade :: IncomingMessage IMServer -> Duplex -> Buffer -> Effect Unit
-  handleUpgrade req socket _ = do
-    let upgradeHeader = fromMaybe "" $ lookup "upgrade" $ IM.headers req
-    if upgradeHeader == "websocket" then
-      void $ Stream.writeString socket UTF8
-        "HTTP/1.1 101 Switching Protocols\r\nContent-Length: 0\r\n\r\n"
-    else
-      void $ Stream.writeString socket UTF8
-        "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
+  waitUntilListening netServer = makeAff \done -> do
+    netServer # once_ NetServer.listeningH do
+      liftEffect $ log $ "Listening on port " <> show httpPort <> "."
+      done $ Right unit
+    listenTcp netServer { host: "localhost", port: httpPort }
+    pure nonCanceler
 
-  sendRequests :: Effect Unit
-  sendRequests = do
-    -- This tests that the upgrade callback is not called when the request is not an HTTP upgrade
+  doRegularRequest server = makeAff \done -> do
+    rmListener <- server # once Server.upgradeH \_ _ _ -> do
+      unsafeCrashWith "testUpgrade - regularRequest - got an upgrade request when expected simple request"
+    server # once_ Server.requestH (respond mempty)
+
     reqSimple <- HTTP.requestOpts { port: httpPort }
     reqSimple # once_ Client.responseH \response -> do
       if (IM.statusCode response /= 200) then
-        unsafeCrashWith "Unexpected response to simple request on `testUpgrade`"
-      else
-        pure unit
+        unsafeCrashWith $ "testUpgrade - regularRequest - unexpected response to simple request: " <> show (IM.statusCode response)
+      else do
+        rmListener
+        log "testUpgrade - regularRequest - Got regular response."
+        done $ Right unit
     end (OM.toWriteable $ Client.toOutgoingMessage reqSimple)
+    pure nonCanceler
 
-    {-
-      These two requests test that the upgrade callback is called and that it has
-      access to the original request and can write to the underlying TCP socket
-    -}
+  checkUpgradeRequest server = makeAff \done -> do
+    rmListener <- server # once Server.requestH \_ -> do
+      unsafeCrashWith "testUpgrade - checkUpgradeRequest - request handler fired instead of upgrade handler"
+    server # once_ Server.upgradeH \req socket _ -> do
+      case fromMaybe "" $ lookup "upgrade" $ IM.headers req of
+        "websocket" ->
+          unsafeCrashWith "testUpgrade - checkUpgradeRequest - expected non-websocket upgrade but got websocket upgrade"
+        _ -> do
+          void $ Stream.writeString (Socket.toDuplex socket) UTF8
+            "HTTP/1.1 426 Upgrade Required\r\nContent-Length: 0\r\n\r\n"
+          void $ Stream.end (Socket.toDuplex socket)
+
     reqUpgrade <- HTTP.requestOpts
       { port: httpPort
       , headers: unsafeCoerce
@@ -242,10 +261,25 @@ testUpgrade = do
       }
     reqUpgrade # once_ Client.responseH \response -> do
       if (IM.statusCode response /= 426) then
-        unsafeCrashWith "Unexpected response to upgrade request on `testUpgrade`"
-      else
-        pure unit
+        unsafeCrashWith $ "Unexpected response to upgrade request on `testUpgrade`: " <> show (IM.statusCode response)
+      else do
+        rmListener
+        log "testUpgrade - checkUpgradeRequest - Got upgrade required response."
+        done $ Right unit
     end (OM.toWriteable $ Client.toOutgoingMessage reqUpgrade)
+    pure nonCanceler
+
+  checkWebSocketUpgrade server = makeAff \done -> do
+    rmListener <- server # once Server.requestH \_ -> do
+      unsafeCrashWith "testUpgrade - checkWebSocketUpgrade - request handler fired instead of upgrade handler"
+    server # once_ Server.upgradeH \req socket _ -> do
+      case fromMaybe "" $ lookup "upgrade" $ IM.headers req of
+        "websocket" -> do
+          void $ Stream.writeString (Socket.toDuplex socket) UTF8
+            "HTTP/1.1 101 Switching Protocols\r\nContent-Length: 0\r\n\r\n"
+          void $ Stream.end (Socket.toDuplex socket)
+        _ ->
+          unsafeCrashWith "testUpgrade - checkWebSocketUpgrade - expected websocket upgrade but got non-websocket upgrade"
 
     reqWSUpgrade <- HTTP.requestOpts
       { port: httpPort
@@ -257,6 +291,15 @@ testUpgrade = do
     reqWSUpgrade # once_ Client.responseH \response -> do
       if (IM.statusCode response /= 101) then
         unsafeCrashWith "Unexpected response to websocket upgrade request on `testUpgrade`"
-      else
-        pure unit
+      else do
+        rmListener
+        mbSocket <- IM.socket response
+        for_ mbSocket \socket -> do
+          log "Destroying socket"
+          Stream.destroy (Socket.toDuplex socket)
+        log "testUpgrade - checkWebSocketUpgrade - Successfully upgraded to websocket."
+        done $ Right unit
+
     end (OM.toWriteable $ Client.toOutgoingMessage reqWSUpgrade)
+    pure nonCanceler
+

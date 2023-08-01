@@ -1,5 +1,6 @@
 module Node.HTTP.ClientRequest
   ( toOutgoingMessage
+  , closeH
   , connectH
   , continueH
   , finishH
@@ -29,13 +30,16 @@ import Node.Buffer (Buffer)
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0, EventHandle3, EventHandle1)
 import Node.HTTP.Types (ClientRequest, IMClientRequest, IncomingMessage, OutgoingMessage)
-import Node.Stream (Duplex)
+import Node.Net.Types (Socket, TCP)
 import Unsafe.Coerce (unsafeCoerce)
 
 toOutgoingMessage :: ClientRequest -> OutgoingMessage
 toOutgoingMessage = unsafeCoerce
 
-connectH :: EventHandle3 ClientRequest (IncomingMessage IMClientRequest) Duplex Buffer
+closeH :: EventHandle0 ClientRequest
+closeH = EventHandle "close" identity
+
+connectH :: EventHandle3 ClientRequest (IncomingMessage IMClientRequest) (Socket TCP) Buffer
 connectH = EventHandle "connect" \cb -> mkEffectFn3 \a b c -> cb a b c
 
 continueH :: EventHandle0 ClientRequest
@@ -59,13 +63,13 @@ informationH = EventHandle "information" mkEffectFn1
 responseH :: EventHandle1 ClientRequest (IncomingMessage IMClientRequest)
 responseH = EventHandle "response" mkEffectFn1
 
-socketH :: EventHandle1 ClientRequest Duplex
+socketH :: EventHandle1 ClientRequest (Socket TCP)
 socketH = EventHandle "socket" mkEffectFn1
 
 timeoutH :: EventHandle0 ClientRequest
 timeoutH = EventHandle "timeout" identity
 
-upgradeH :: EventHandle3 ClientRequest (IncomingMessage IMClientRequest) Duplex Buffer
+upgradeH :: EventHandle3 ClientRequest (IncomingMessage IMClientRequest) (Socket TCP) Buffer
 upgradeH = EventHandle "upgrade" \cb -> mkEffectFn3 \a b c -> cb a b c
 
 foreign import path :: ClientRequest -> String

@@ -31,6 +31,7 @@ import Foreign.Object (Object)
 import Node.EventEmitter (EventHandle(..))
 import Node.EventEmitter.UtilTypes (EventHandle0)
 import Node.HTTP.Types (OutgoingMessage)
+import Node.Net.Types (Socket, TCP)
 import Node.Stream (Writable)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -111,7 +112,7 @@ setTimeout msecs msg = runEffectFn2 setTimeoutImpl msecs msg
 
 foreign import setTimeoutImpl :: EffectFn2 (Milliseconds) (OutgoingMessage) (Unit)
 
-socket :: OutgoingMessage -> Effect (Maybe (Writable ()))
+socket :: OutgoingMessage -> Effect (Maybe (Socket TCP))
 socket msg = map toMaybe $ runEffectFn1 socketImpl msg
 
-foreign import socketImpl :: EffectFn1 (OutgoingMessage) (Nullable (Writable ()))
+foreign import socketImpl :: EffectFn1 (OutgoingMessage) (Nullable (Socket TCP))
