@@ -1,0 +1,13 @@
+export const completeImpl = (im) => im.complete;
+export const headersImpl = (im) => im.headers;
+export const headersDistinct = (im) => im.headersDistinct;
+export const httpVersion = (im) => im.httpVersion;
+export const method = (im) => im.method;
+export const rawHeaders = (im) => im.rawHeaders;
+export const rawTrailersImpl = (im) => im.rawTrailers;
+export const socketImpl = (im) => im.socket;
+export const statusCode = (im) => im.statusCode;
+export const statusMessage = (im) => im.statusMessage;
+export const trailersImpl = (im) => im.trailers;
+export const trailersDistinctImpl = (im) => im.trailersDistinct;
+export const url = (im) => im.url;

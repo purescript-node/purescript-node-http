@@ -1,114 +1,198 @@
--- | This module defines low-level bindings to the Node HTTP module.
-
 module Node.HTTP
-  ( Server
-  , Request
-  , Response
-
+  ( CreateServerOptions
   , createServer
-  , listen
-  , close
-  , ListenOptions
-  , listenSocket
-  , onConnect
-  , onUpgrade
-
-  , httpVersion
-  , requestHeaders
-  , requestMethod
-  , requestURL
-  , requestAsStream
-
-  , setHeader
-  , setHeaders
-  , setStatusCode
-  , setStatusMessage
-  , responseAsStream
+  , createServer'
+  , maxHeaderSize
+  , request
+  , requestUrl
+  , RequestOptions
+  , request'
+  , requestURL'
+  , requestOpts
+  , get
+  , getUrl
+  , get'
+  , getUrl'
+  , getOpts
+  , setMaxIdleHttpParsers
   ) where
 
 import Prelude
 
-import Data.Maybe (Maybe)
-import Data.Nullable (Nullable, toNullable)
+import Data.Time.Duration (Milliseconds)
 import Effect (Effect)
+import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
+import Foreign (Foreign)
 import Foreign.Object (Object)
-import Node.Buffer (Buffer)
-import Node.Net.Types (Socket, TCP)
-import Node.Stream (Writable, Readable)
-import Unsafe.Coerce (unsafeCoerce)
+import Node.HTTP.Types (ClientRequest, HttpServer)
+import Node.Net.Types (ConnectTcpOptions)
+import Node.Stream (Duplex)
+import Node.URL (URL)
+import Prim.Row as Row
 
--- | The type of a HTTP server object
-foreign import data Server :: Type
+-- | - `connectionsCheckingInterval`: Sets the interval value in milliseconds to check for request and headers timeout in incomplete requests. Default: 30000.
+-- | - `headersTimeout`: Sets the timeout value in milliseconds for receiving the complete HTTP headers from the client. See server.headersTimeout for more information. Default: 60000.
+-- | - `highWaterMark` <number> Optionally overrides all sockets' readableHighWaterMark and writableHighWaterMark. This affects highWaterMark property of both IncomingMessage and ServerResponse. Default: See stream.getDefaultHighWaterMark().
+-- | - `insecureHTTPParser` <boolean> Use an insecure HTTP parser that accepts invalid HTTP headers when true. Using the insecure parser should be avoided. See --insecure-http-parser for more information. Default: false.
+-- | - `keepAlive` <boolean> If set to true, it enables keep-alive functionality on the socket immediately after a new incoming connection is received, similarly on what is done in [socket.setKeepAlive([enable][, initialDelay])][socket.setKeepAlive(enable, initialDelay)]. Default: false.
+-- | - `keepAliveInitialDelay` <number> If set to a positive number, it sets the initial delay before the first keepalive probe is sent on an idle socket. Default: 0.
+-- | - `requestTimeout`: Sets the timeout value in milliseconds for receiving the entire request from the client. See server.requestTimeout for more information. Default: 300000.
+-- | - `joinDuplicateHeaders` <boolean> It joins the field line values of multiple headers in a request with , instead of discarding the duplicates. See message.headers for more information. Default: false.
+-- | - `uniqueHeaders` <Array> A list of response headers that should be sent only once. If the header's value is an array, the items will be joined using ; .
+type CreateServerOptions =
+  ( connectionsCheckingInterval :: Milliseconds
+  , headersTimeout :: Milliseconds
+  , highWaterMark :: Number
+  , insecureHTTPParser :: Boolean
+  , keepAlive :: Boolean
+  , keepAliveInitialDelay :: Milliseconds
+  , requestTimeout :: Milliseconds
+  , joinDuplicateHeaders :: Boolean
+  , uniqueHeaders :: Array String
+  )
 
--- | A HTTP request object
-foreign import data Request :: Type
+foreign import createServer :: Effect (HttpServer)
 
--- | A HTTP response object
-foreign import data Response :: Type
+createServer'
+  :: forall r trash
+   . Row.Union r trash CreateServerOptions
+  => { | r }
+  -> Effect HttpServer
+createServer' opts = runEffectFn1 createServerOptsImpl opts
 
--- | Create a HTTP server, given a function to be executed when a request is received.
-foreign import createServer :: (Request -> Response -> Effect Unit) -> Effect Server
+foreign import createServerOptsImpl :: forall r. EffectFn1 ({ | r }) (HttpServer)
 
-foreign import listenImpl :: Server -> Int -> String -> Nullable Int -> Effect Unit -> Effect Unit
+foreign import maxHeaderSize :: Int
 
-foreign import closeImpl :: Server -> Effect Unit -> Effect Unit
+request :: String -> Effect ClientRequest
+request url = runEffectFn1 requestStrImpl url
 
--- | Listen on a port in order to start accepting HTTP requests. The specified callback will be run when setup is complete.
-listen :: Server -> ListenOptions -> Effect Unit -> Effect Unit
-listen server opts done = listenImpl server opts.port opts.hostname (toNullable opts.backlog) done
+foreign import requestStrImpl :: EffectFn1 (String) (ClientRequest)
 
--- | Close a listening HTTP server. The specified callback will be run the server closing is complete.
-close :: Server -> Effect Unit -> Effect Unit
-close server done = closeImpl server done
+requestUrl :: URL -> Effect ClientRequest
+requestUrl url = runEffectFn1 requestUrlImpl url
 
--- | Options to be supplied to `listen`. See the [Node API](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_server_listen_handle_callback) for detailed information about these.
-type ListenOptions =
-  { hostname :: String
+foreign import requestUrlImpl :: EffectFn1 (URL) (ClientRequest)
+
+-- | - `auth` <string> Basic authentication ('user:password') to compute an Authorization header.
+-- | - `createConnection` <Function> A function that produces a socket/stream to use for the request when the agent option is not used. This can be used to avoid creating a custom Agent class just to override the default createConnection function. See agent.createConnection() for more details. Any Duplex stream is a valid return value.
+-- | - `defaultPort` <number> Default port for the protocol. Default: agent.defaultPort if an Agent is used, else undefined.
+-- | - `family` <number> IP address family to use when resolving host or hostname. Valid values are 4 or 6. When unspecified, both IP v4 and v6 will be used.
+-- | - `headers` <Object> An object containing request headers.
+-- | - `hints` <number> Optional dns.lookup() hints.
+-- | - `host` <string> A domain name or IP address of the server to issue the request to. Default: 'localhost'.
+-- | - `hostname` <string> Alias for host. To support url.parse(), hostname will be used if both host and hostname are specified.
+-- | - `insecureHTTPParser` <boolean> Use an insecure HTTP parser that accepts invalid HTTP headers when true. Using the insecure parser should be avoided. See --insecure-http-parser for more information. Default: false
+-- | - `localAddress` <string> Local interface to bind for network connections.
+-- | - `localPort` <number> Local port to connect from.
+-- | - `lookup` <Function> Custom lookup function. Default: dns.lookup().
+-- | - `maxHeaderSize` <number> Optionally overrides the value of --max-http-header-size (the maximum length of response headers in bytes) for responses received from the server. Default: 16384 (16 KiB).
+-- | - `method` <string> A string specifying the HTTP request method. Default: 'GET'.
+-- | - `path` <string> Request path. Should include query string if any. E.G. '/index.html?page=12'. An exception is thrown when the request path contains illegal characters. Currently, only spaces are rejected but that may change in the future. Default: '/'.
+-- | - `port` <number> Port of remote server. Default: defaultPort if set, else 80.
+-- | - `protocol` <string> Protocol to use. Default: 'http:'.
+-- | - `setHost` <boolean>: Specifies whether or not to automatically add the Host header. Defaults to true.
+-- | - `signal` <AbortSignal>: An AbortSignal that may be used to abort an ongoing request.
+-- | - `socketPath` <string> Unix domain socket. Cannot be used if one of host or port is specified, as those specify a TCP Socket.
+-- | - `timeout` <number>: A number specifying the socket timeout in milliseconds. This will set the timeout before the socket is connected.
+-- | - `uniqueHeaders` <Array> A list of request headers that should be sent only once. If the header's value is an array, the items will be joined using ; .
+-- | - `joinDuplicateHeaders` <boolean> It joins the field line values of multiple headers in a request with , instead of discarding the duplicates. See message.headers for more information. Default: false.
+type RequestOptions r =
+  ( auth :: String
+  , createConnection :: Effect Duplex
+  , defaultPort :: Int
+  , family :: Int
+  , headers :: Object Foreign
+  , hints :: Number
+  , host :: String
+  , hostname :: String
+  , insecureHTTPParser :: Boolean
+  , localAddress :: String
+  , localPort :: Int
+  , maxHeaderSize :: Number
+  , method :: String
+  , path :: String
   , port :: Int
-  , backlog :: Maybe Int
-  }
+  , protocol :: String
+  , setHost :: Boolean
+  , socketPath :: String
+  , timeout :: Milliseconds
+  , uniqueHeaders :: Array String
+  , joinDuplicateHeaders :: Boolean
+  | ConnectTcpOptions r
+  )
 
--- | Listen on a unix socket. The specified callback will be run when setup is complete.
-foreign import listenSocket :: Server -> String -> Effect Unit -> Effect Unit
+request'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => String
+  -> { | r }
+  -> Effect ClientRequest
+request' url opts = runEffectFn2 requestStrOptsImpl url opts
 
--- | Listen to `connect` events on the server
-foreign import onConnect :: Server -> (Request -> Socket TCP -> Buffer -> Effect Unit) -> Effect Unit
+foreign import requestStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
--- | Listen to `upgrade` events on the server
-foreign import onUpgrade :: Server -> (Request -> Socket TCP -> Buffer -> Effect Unit) -> Effect Unit
+requestURL'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+requestURL' url opts = runEffectFn2 requestUrlOptsImpl url opts
 
--- | Get the request HTTP version
-httpVersion :: Request -> String
-httpVersion = _.httpVersion <<< unsafeCoerce
+foreign import requestUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
 
--- | Get the request headers as a hash
-requestHeaders :: Request -> Object String
-requestHeaders = _.headers <<< unsafeCoerce
+requestOpts
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => { | r }
+  -> Effect ClientRequest
+requestOpts opts = runEffectFn1 requestOptsImpl opts
 
--- | Get the request method (GET, POST, etc.)
-requestMethod :: Request -> String
-requestMethod = _.method <<< unsafeCoerce
+foreign import requestOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
 
--- | Get the request URL
-requestURL :: Request -> String
-requestURL = _.url <<< unsafeCoerce
+get :: String -> Effect ClientRequest
+get url = runEffectFn1 getStrImpl url
 
--- | Coerce the request object into a readable stream.
-requestAsStream :: Request -> Readable ()
-requestAsStream = unsafeCoerce
+foreign import getStrImpl :: EffectFn1 (String) (ClientRequest)
 
--- | Set a header with a single value.
-foreign import setHeader :: Response -> String -> String -> Effect Unit
+getUrl :: URL -> Effect ClientRequest
+getUrl url = runEffectFn1 getUrlImpl url
 
--- | Set a header with multiple values.
-foreign import setHeaders :: Response -> String -> Array String -> Effect Unit
+foreign import getUrlImpl :: EffectFn1 (URL) (ClientRequest)
 
--- | Set the status code.
-foreign import setStatusCode :: Response -> Int -> Effect Unit
+get'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => Row.Lacks "method" r
+  => String
+  -> { | r }
+  -> Effect ClientRequest
+get' url opts = runEffectFn2 getStrOptsImpl url opts
 
--- | Set the status message.
-foreign import setStatusMessage :: Response -> String -> Effect Unit
+foreign import getStrOptsImpl :: forall r. EffectFn2 (String) ({ | r }) (ClientRequest)
 
--- | Coerce the response object into a writable stream.
-responseAsStream :: Response -> Writable ()
-responseAsStream = unsafeCoerce
+getUrl'
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => Row.Lacks "method" r
+  => URL
+  -> { | r }
+  -> Effect ClientRequest
+getUrl' url opts = runEffectFn2 getUrlOptsImpl url opts
+
+foreign import getUrlOptsImpl :: forall r. EffectFn2 (URL) ({ | r }) (ClientRequest)
+
+getOpts
+  :: forall r trash
+   . Row.Union r trash (RequestOptions ())
+  => { | r }
+  -> Effect ClientRequest
+getOpts opts = runEffectFn1 getOptsImpl opts
+
+foreign import getOptsImpl :: forall r. EffectFn1 ({ | r }) (ClientRequest)
+
+setMaxIdleHttpParsers :: Int -> Effect Unit
+setMaxIdleHttpParsers i = runEffectFn1 setMaxIdleHttpParsersImpl i
+
+foreign import setMaxIdleHttpParsersImpl :: EffectFn1 (Int) (Unit)

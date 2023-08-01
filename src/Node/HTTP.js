@@ -1,101 +1,20 @@
-import http from "http";
+import http from "node:http";
 
-export function createServer(handleRequest) {
-  return function () {
-    return http.createServer(function (req, res) {
-      handleRequest(req)(res)();
-    });
-  };
-}
+export const createServer = () => http.createServer();
+export const createServerOptsImpl = (opts) => http.createServer(opts);
 
-export function listenImpl(server) {
-  return function (port) {
-    return function (hostname) {
-      return function (backlog) {
-        return function (done) {
-          return function () {
-            if (backlog !== null) {
-              server.listen(port, hostname, backlog, done);
-            } else {
-              server.listen(port, hostname, done);
-            }
-          };
-        };
-      };
-    };
-  };
-}
+export const maxHeaderSize = http.maxHeaderSize;
 
-export function closeImpl(server) {
-  return function (done) {
-    return function () {
-      server.close(done);
-    };
-  };
-}
+export const requestStrImpl = (url) => http.request(url);
+export const requestStrOptsImpl = (url, opts) => http.request(url, opts);
+export const requestUrlImpl = (url) => http.request(url);
+export const requestUrlOptsImpl = (url, opts) => http.request(url, opts);
+export const requestOptsImpl = (opts) => http.request(opts);
 
-export function listenSocket(server) {
-  return function (path) {
-    return function (done) {
-      return function () {
-        server.listen(path, done);
-      };
-    };
-  };
-}
+export const getStrImpl = (url) => http.get(url);
+export const getStrOptsImpl = (url, opts) => http.get(url, opts);
+export const getUrlImpl = (url) => http.get(url);
+export const getUrlOptsImpl = (url, opts) => http.get(url, opts);
+export const getOptsImpl = (opts) => http.get(opts);
 
-export function onConnect(server) {
-  return function (cb) {
-    return function () {
-      server.on("connect", function (req, socket, buffer) {
-        return cb(req)(socket)(buffer)();
-      });
-    };
-  };
-}
-
-export function onUpgrade(server) {
-  return function (cb) {
-    return function () {
-      server.on("upgrade", function (req, socket, buffer) {
-        return cb(req)(socket)(buffer)();
-      });
-    };
-  };
-}
-
-export function setHeader(res) {
-  return function (key) {
-    return function (value) {
-      return function () {
-        res.setHeader(key, value);
-      };
-    };
-  };
-}
-
-export function setHeaders(res) {
-  return function (key) {
-    return function (values) {
-      return function () {
-        res.setHeader(key, values);
-      };
-    };
-  };
-}
-
-export function setStatusCode(res) {
-  return function (code) {
-    return function () {
-      res.statusCode = code;
-    };
-  };
-}
-
-export function setStatusMessage(res) {
-  return function (message) {
-    return function () {
-      res.statusMessage = message;
-    };
-  };
-}
+export const setMaxIdleHttpParsersImpl = (i) => http.setMaxIdleHTTPParsers(i);

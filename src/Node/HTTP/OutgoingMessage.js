@@ -1,0 +1,14 @@
+export const addTrailersImpl = (trailers, om) => om.addTrailers(trailers);
+export const appendHeaderImpl = (name, value, om) => om.appendHeader(name, value);
+export const appendHeadersImpl = (name, values, om) => om.appendHeaders(name, values);
+export const flushHeadersImpl = (om) => om.flushHeaders();
+export const getHeaderImpl = (name, om) => om.getHeader(name);
+export const getHeaderNamesImpl = (name, om) => om.getHeaderNames(name);
+export const getHeadersImpl = (om) => om.getHeaders();
+export const hasHeaderImpl = (name, msg) => msg.hasHeader(name);
+export const headersSentImpl = (om) => om.headersSent();
+export const removeHeaderImpl = (name, om) => om.removeHeader(name);
+export const setHeaderImpl = (name, value, om) => om.setHeader(name, value);
+export const setHeaderArrImpl = (name, value, om) => om.setHeader(name, value);
+export const setTimeoutImpl = (msecs, om) => om.setTimeout(msecs);
+export const socketImpl = (om) => om.socket;
