@@ -6,6 +6,7 @@ Notable changes to this project are documented in this file. The format is based
 
 Breaking changes:
 - Update node libraries to latest releases (#48 by @JordanMartinez)
+- Reimplement `http`/`https` bindings (#49 by @JordanMartinez)
 
 New features:
 
