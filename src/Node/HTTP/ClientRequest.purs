@@ -1,5 +1,6 @@
 module Node.HTTP.ClientRequest
   ( toOutgoingMessage
+  , closeH
   , connectH
   , continueH
   , finishH
@@ -34,6 +35,9 @@ import Unsafe.Coerce (unsafeCoerce)
 
 toOutgoingMessage :: ClientRequest -> OutgoingMessage
 toOutgoingMessage = unsafeCoerce
+
+closeH :: EventHandle0 ClientRequest
+closeH = EventHandle "close" identity
 
 connectH :: EventHandle3 ClientRequest (IncomingMessage IMClientRequest) (Socket TCP) Buffer
 connectH = EventHandle "connect" \cb -> mkEffectFn3 \a b c -> cb a b c
