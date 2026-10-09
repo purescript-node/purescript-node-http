@@ -23,6 +23,7 @@ export const writeEarlyHintsCbImpl = (hints, cb, sr) => sr.writeEarlyHintsCb(hin
 export const writeHeadImpl = (code, sr) => sr.writeHead(code);
 export const writeHeadMsgImpl = (code, msg, sr) => sr.writeHeadMsg(code, msg);
 export const writeHeadHeadersImpl = (code, hdrs, sr) => sr.writeHeadHeaders(code, hdrs);
-export const writeHeadMsgHeadersImpl = (code, msg, hdrs, sr) => sr.writeHeadMsgHeaders(code, msg, hdrs);
+export const writeHeadMsgHeadersImpl = (code, msg, hdrs, sr) =>
+  sr.writeHeadMsgHeaders(code, msg, hdrs);
 
 export const writeProcessingImpl = (sr) => sr.writeProcessing();
