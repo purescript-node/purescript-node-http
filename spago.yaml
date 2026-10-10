@@ -1,5 +1,11 @@
 package:
   name: node-http
+  publish:
+    version: 9.1.1
+    license: MIT
+    location:
+      githubOwner: purescript-node
+      githubRepo: purescript-node-http
   dependencies:
     - arrays: ">=7.0.0 <8.0.0"
     - datetime: ">=6.0.0 <7.0.0"
